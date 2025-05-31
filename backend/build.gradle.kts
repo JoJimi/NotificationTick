@@ -32,6 +32,9 @@ dependencies {
 	// PostgreSQL
 	implementation("org.postgresql:postgresql:42.7.5")
 
+	// Swagger
+	implementation ("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	annotationProcessor("org.projectlombok:lombok")
