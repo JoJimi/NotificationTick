@@ -4,7 +4,7 @@ import lombok.Getter;
 import java.util.*;
 
 @Getter
-public enum LoginType {
+public enum LoginType {     // 로그인 유형
     LOCAL("local"),
     KAKAO("kakao"),
     GOOGLE("google");
