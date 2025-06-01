@@ -20,19 +20,16 @@ import java.time.LocalDateTime;
 public abstract class BaseEntity {
 
     @CreatedDate
-    @Column(name = "created_at", updatable = false)
+    @Column(updatable = false)
     private LocalDateTime createdAt;    // 엔티티 최초 저장 시 자동 입력
 
     @LastModifiedDate
-    @Column(name = "updated_at")
     private LocalDateTime updatedAt;    // 엔티티 수정 시 자동 갱신
 
     @CreatedBy
-    @Column(name = "created_by")
     private String createdBy;           // 데이터를 생성한 주체, Spring Security와 연동하여 자동 주입
 
     @LastModifiedBy
-    @Column(name = "last_modified_by")
     private String lastModifiedBy;      // 마지막으로 수정한 주체, 자동 주입
 
     // soft delete 플래그
