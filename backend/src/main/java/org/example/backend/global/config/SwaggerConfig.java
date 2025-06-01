@@ -18,8 +18,8 @@ public class SwaggerConfig {
 
     private Info apiInfo() {
         return new Info()
-            .title("통합 인증 프로젝트")
-            .description("Spring doc를 사용한 auth system swagger UI")
+            .title("주식 가격 예측 대시보드 프로젝트")
+            .description("Spring doc를 사용한 PredicTick swagger UI")
             .version("1.0.0");
     }
 
