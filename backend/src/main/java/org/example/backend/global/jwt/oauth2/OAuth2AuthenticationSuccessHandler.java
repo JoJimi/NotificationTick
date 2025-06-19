@@ -7,11 +7,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.backend.global.jwt.JwtTokenProvider;
 import org.example.backend.global.jwt.redis.TokenService;
 import org.example.backend.type.LoginType;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 
@@ -24,6 +26,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final JwtTokenProvider tokenProvider;
     private final TokenService tokenService;
     private final OAuth2UserRegistration registration;
+
+    @Value("${app.frontBaseUrl}")
+    private String frontBaseUrl;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -68,9 +73,13 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         // Redis에는 이제 providerId 가 아니라 UserId를 String 형태를 키로 저장
         tokenService.storeRefreshToken(userIdKey, refreshToken);
 
-        response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(
-                String.format("{\"accessToken\":\"%s\",\"refreshToken\":\"%s\"}", accessToken, refreshToken)
-        );
+        String redirectUri = UriComponentsBuilder
+                .fromHttpUrl(frontBaseUrl + "/oauth2/callback")
+                .queryParam("accessToken",  accessToken)
+                .queryParam("refreshToken", refreshToken)
+                .build()
+                .toUriString();
+
+        getRedirectStrategy().sendRedirect(request, response, redirectUri);
     }
 }
