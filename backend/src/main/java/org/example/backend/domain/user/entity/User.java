@@ -53,12 +53,15 @@ public class User extends BaseEntity {      /** 사용자 **/
     @Column(name = "role_type", nullable = false, length = 20)
     private RoleType role = RoleType.ROLE_USER;
 
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Notification> notifications = new HashSet<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Portfolio> portfolios = new HashSet<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<WatchList> watchList = new HashSet<>();
 
