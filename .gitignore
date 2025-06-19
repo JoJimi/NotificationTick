@@ -42,4 +42,5 @@ bin/
 .DS_Store
 
 /backend/src/main/resources/application-prod.yml
+/backend/src/main/resources/application-dev.yml
 /backend/.env
