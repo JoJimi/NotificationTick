@@ -42,15 +42,19 @@ public class Stock extends BaseEntity {     /** 종목 **/
     @Column(name = "sector", length = 50)
     private String sector;
 
+    @Builder.Default
     @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Transaction> transactions = new HashSet<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Prediction> predictions = new HashSet<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<News> news = new HashSet<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<WatchList> watchList = new HashSet<>();
 

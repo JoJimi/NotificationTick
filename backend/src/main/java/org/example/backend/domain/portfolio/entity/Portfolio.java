@@ -34,6 +34,7 @@ public class Portfolio extends BaseEntity {     /** 포트폴리오 **/
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Builder.Default
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Transaction> transactions = new HashSet<>();
 
