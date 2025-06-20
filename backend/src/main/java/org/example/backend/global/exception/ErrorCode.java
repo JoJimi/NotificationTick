@@ -8,11 +8,18 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum ErrorCode {
 
-    // common
+    // 공통
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "ECO001", "서버 오류가 발생했습니다."),
 
-    // user
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "EU001", "사용자를 찾을 수 없습니다.");
+    // 사용자
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "EU001", "사용자를 찾을 수 없습니다."),
+
+    // 인증·인가
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED,     "EAU001", "인증에 실패했습니다."),
+    FORBIDDEN(HttpStatus.FORBIDDEN,           "EAF001", "권한이 없습니다."),
+
+    INVALID_REFRESH_TOKEN_EXCEPTION(HttpStatus.UNAUTHORIZED,     "EAU002", "리프레시 토큰 검증 실패했습니다.");
+
 
     private final HttpStatus httpStatus;
     private final String code;

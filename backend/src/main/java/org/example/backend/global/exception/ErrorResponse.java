@@ -1,13 +1,10 @@
 package org.example.backend.global.exception;
 
 import lombok.Builder;
-import lombok.Getter;
 
-@Getter
-@Builder
-public class ErrorResponse {
+public record ErrorResponse(String errorCode, String message) {
 
-    private String errorCode;
-    private String message;
-
+    @Builder
+    public ErrorResponse {
+    }
 }

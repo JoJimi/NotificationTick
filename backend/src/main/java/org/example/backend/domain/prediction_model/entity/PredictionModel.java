@@ -40,6 +40,7 @@ public class PredictionModel extends BaseEntity {  /** 예측 모델 메타정�
     @Column(name = "hyper_parameters", columnDefinition = "jsonb")
     private String hyperParameters;
 
+    @Builder.Default
     @OneToMany(mappedBy = "model", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Prediction> predictions = new HashSet<>();
 }
