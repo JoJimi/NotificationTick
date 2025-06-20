@@ -80,6 +80,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .build()
                 .toUriString();
 
+        log.info(redirectUri);
+
         getRedirectStrategy().sendRedirect(request, response, redirectUri);
     }
 }
