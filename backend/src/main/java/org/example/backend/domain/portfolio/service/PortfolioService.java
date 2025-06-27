@@ -1,6 +1,5 @@
 package org.example.backend.domain.portfolio.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.domain.portfolio.dto.request.PortfolioRequest;
 import org.example.backend.domain.portfolio.dto.response.PortfolioDetailsResponse;

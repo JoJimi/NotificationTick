@@ -8,7 +8,6 @@ import org.example.backend.domain.portfolio.dto.response.PortfolioResponse;
 import org.example.backend.domain.portfolio.service.PortfolioService;
 import org.example.backend.domain.user.entity.User;
 import org.example.backend.global.jwt.custom.CustomUserDetails;
-import org.springframework.cglib.SpringCglibInfo;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
