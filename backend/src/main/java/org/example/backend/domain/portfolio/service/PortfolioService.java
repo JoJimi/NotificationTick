@@ -6,7 +6,7 @@ import org.example.backend.domain.portfolio.dto.response.PortfolioDetailsRespons
 import org.example.backend.domain.portfolio.dto.response.PortfolioResponse;
 import org.example.backend.domain.portfolio.entity.Portfolio;
 import org.example.backend.domain.portfolio.repository.PortfolioRepository;
-import org.example.backend.domain.transaction.TransactionsResponse;
+import org.example.backend.domain.transaction.dto.response.TransactionsResponse;
 import org.example.backend.domain.user.entity.User;
 import org.example.backend.global.exception.portfolio.PortfolioNotFoundException;
 import org.springframework.stereotype.Service;

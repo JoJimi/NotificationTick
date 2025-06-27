@@ -1,7 +1,7 @@
 package org.example.backend.domain.portfolio.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.example.backend.domain.transaction.TransactionsResponse;
+import org.example.backend.domain.transaction.dto.response.TransactionsResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
