@@ -1,8 +1,8 @@
 package org.example.backend.domain.user.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.backend.domain.user.dto.request.UpdateProfileRequest;
-import org.example.backend.domain.user.dto.response.UserProfileResponse;
+import org.example.backend.domain.user.dto.request.NicknameUpdateRequest;
+import org.example.backend.domain.user.dto.response.UserResponse;
 import org.example.backend.domain.user.entity.User;
 import org.example.backend.domain.user.service.UserService;
 import org.example.backend.global.jwt.custom.CustomUserDetails;
@@ -18,11 +18,11 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/me")
-    public ResponseEntity<UserProfileResponse> getMyProfile(
+    public ResponseEntity<UserResponse> getMyProfile(
             @AuthenticationPrincipal CustomUserDetails principal){
 
         User user = userService.getCurrentUser(principal.getUser().getId());
-        UserProfileResponse response = new UserProfileResponse(
+        UserResponse response = new UserResponse(
                 user.getId(),
                 user.getEmail(),
                 user.getNickname(),
@@ -34,12 +34,12 @@ public class UserController {
     }
 
     @PutMapping("/me")
-    public ResponseEntity<UserProfileResponse> updateProfile(
+    public ResponseEntity<UserResponse> updateProfile(
             @AuthenticationPrincipal CustomUserDetails principal,
-            @RequestBody UpdateProfileRequest request) {
+            @RequestBody NicknameUpdateRequest request) {
 
         User user = userService.updateNickname(principal.getUser().getId(), request.nickname());
-        UserProfileResponse response = new UserProfileResponse(
+        UserResponse response = new UserResponse(
                 user.getId(),
                 user.getEmail(),
                 user.getNickname(),
