@@ -53,6 +53,7 @@ public class UserController {
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteAccount(
             @AuthenticationPrincipal CustomUserDetails principal) {
+
         userService.deleteUser(principal.getUser().getId());
         return ResponseEntity.noContent().build();
     }
