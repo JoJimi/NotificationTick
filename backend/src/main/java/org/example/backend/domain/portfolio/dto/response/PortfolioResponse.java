@@ -1,11 +1,10 @@
 package org.example.backend.domain.portfolio.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-@Schema(description = "포트폴리오 응답 정보")
+@Schema(description = "포트폴리오 응답 정보 DTO")
 public record PortfolioResponse(
 
         @Schema(description = "포트폴리오 식별자(ID)", example = "3")

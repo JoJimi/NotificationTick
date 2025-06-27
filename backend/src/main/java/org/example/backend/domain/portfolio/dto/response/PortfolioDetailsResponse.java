@@ -2,12 +2,11 @@ package org.example.backend.domain.portfolio.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.example.backend.domain.transaction.TransactionsResponse;
-import org.example.backend.domain.transaction.entity.Transaction;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Schema(description = "포트폴리오 상세 응답 정보")
+@Schema(description = "포트폴리오 상세 응답 정보 DTO")
 public record PortfolioDetailsResponse(
 
         @Schema(description = "포트폴리오 식별자(ID)", example = "3")

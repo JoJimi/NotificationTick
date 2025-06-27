@@ -2,7 +2,7 @@ package org.example.backend.domain.portfolio.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "포트폴리오 요청 정보")
+@Schema(description = "포트폴리오 요청 정보 DTO")
 public record PortfolioRequest(
         @Schema(description = "포트폴리오 이름", example = "테크장기투자")
         String name,
