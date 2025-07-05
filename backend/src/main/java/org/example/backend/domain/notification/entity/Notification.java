@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.backend.domain.stock.entity.Stock;
 import org.example.backend.domain.user.entity.User;
 import org.example.backend.global.entity.BaseEntity;
 import org.example.backend.type.NotificationType;
@@ -25,8 +26,9 @@ public class Notification extends BaseEntity {      /** 알림 **/
     private User user;
 
     /** 관련 종목 - 선택적 FK **/
-    @Column(name = "stock_id")
-    private Long stockId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stock_id")
+    private Stock stock;
 
     /** 알림 유형 (NOT NULL)
      * PRICE_DROP("급락 알림"),
