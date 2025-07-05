@@ -3,6 +3,7 @@ package org.example.backend.domain.stock.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.backend.domain.news.entity.News;
+import org.example.backend.domain.notification.entity.Notification;
 import org.example.backend.domain.prediction.entity.Prediction;
 import org.example.backend.domain.transaction.entity.Transaction;
 import org.example.backend.domain.watch_list.entity.WatchList;
@@ -57,5 +58,9 @@ public class Stock extends BaseEntity {     /** 종목 **/
     @Builder.Default
     @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<WatchList> watchList = new HashSet<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Notification> notifications = new HashSet<>();
 
 }
