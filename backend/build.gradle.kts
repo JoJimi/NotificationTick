@@ -27,6 +27,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-batch")
+	testImplementation("org.springframework.batch:spring-batch-test")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
 	// Spring Security + OAuth2 Client
@@ -34,7 +36,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 
 	// PostgreSQL
-	implementation("org.postgresql:postgresql:42.7.5")
+	implementation("org.postgresql:postgresql:42.7.7")
 
 	// Swagger
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
