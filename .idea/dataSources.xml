@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="predictick_dev@localhost" uuid="7d6eae88-40d3-40da-8603-b1bf9794cf17">
+    <data-source source="LOCAL" name="predictick_dev@localhost" uuid="2d71219e-0774-4896-80f2-2d8c5aeacf20">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>

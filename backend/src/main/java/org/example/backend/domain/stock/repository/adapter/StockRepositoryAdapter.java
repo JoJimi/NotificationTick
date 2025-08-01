@@ -6,16 +6,37 @@ import org.example.backend.domain.stock.repository.SpringDataStockRepository;
 import org.example.backend.domain.stock.repository.StockRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
 public class StockRepositoryAdapter implements StockRepository {
 
-    private final SpringDataStockRepository springDataStockRepository;
+    private final SpringDataStockRepository repository;
 
     @Override
     public Optional<Stock> findBySymbol(String symbol) {
-        return springDataStockRepository.findBySymbol(symbol);
+        return repository.findBySymbol(symbol);
+    }
+
+    @Override
+    public List<Stock> findAll() {
+        return repository.findAll();
+    }
+
+    @Override
+    public Stock save(Stock stock) {
+        return repository.save(stock);
+    }
+
+    @Override
+    public long count() {
+        return repository.count();
+    }
+
+    @Override
+    public void deleteAll() {
+        repository.deleteAll();
     }
 }

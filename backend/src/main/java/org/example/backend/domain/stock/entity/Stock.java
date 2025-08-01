@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.example.backend.domain.news.entity.News;
 import org.example.backend.domain.notification.entity.Notification;
-import org.example.backend.domain.prediction.entity.Prediction;
 import org.example.backend.domain.transaction.entity.Transaction;
 import org.example.backend.domain.watch_list.entity.WatchList;
 import org.example.backend.global.entity.BaseEntity;
@@ -27,29 +26,25 @@ public class Stock extends BaseEntity {     /** 종목 **/
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** 주식 티커 (NOT NULL, UNIQUE) **/
-    @Column(name = "symbol", nullable = false, length = 20)
+    /** 주식 코드 (예: KRX 단축 코드 ("005930")) **/
+    @Column(name = "symbol", nullable = false, length = 20, unique = true)
     private String symbol;
 
     /** 종목 이름 **/
     @Column(name = "name", length = 100)
     private String name;
 
-    /** 거래소/시장 (예: NASDAQ) **/
+    /** 거래소/시장 (예: KOSPI, KOSDAQ 등) **/
     @Column(name = "market", length = 50)
     private String market;
 
-    /** 업종 (예: Technology) **/
-    @Column(name = "sector", length = 50)
-    private String sector;
+    /** ISIN 코드 **/
+    @Column(name = "isin", nullable = false, length = 12, unique = true)
+    private String isin;
 
     @Builder.Default
     @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Transaction> transactions = new HashSet<>();
-
-    @Builder.Default
-    @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Prediction> predictions = new HashSet<>();
 
     @Builder.Default
     @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
