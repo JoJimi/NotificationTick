@@ -12,5 +12,5 @@ public interface StockRepository {
     List<Stock> saveAll(List<Stock> lists);
     long count();
     void deleteAll();
-    List<String> findAllSymbols();
+    List<String> findAllIsins();
 }

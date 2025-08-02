@@ -46,7 +46,7 @@ public class StockRepositoryAdapter implements StockRepository {
     }
 
     @Override
-    public List<String> findAllSymbols() {
-        return repository.findAllSymbols();
+    public List<String> findAllIsins() {
+        return repository.findAllIsin();
     }
 }

@@ -10,6 +10,6 @@ import java.util.Optional;
 public interface SpringDataStockRepository extends JpaRepository<Stock, Long> {
     Optional<Stock> findBySymbol(String symbol);
 
-    @Query("select s.symbol from Stock s")
-    List<String> findAllSymbols();
+    @Query("select s.isin from Stock s")
+    List<String> findAllIsin();
 }
