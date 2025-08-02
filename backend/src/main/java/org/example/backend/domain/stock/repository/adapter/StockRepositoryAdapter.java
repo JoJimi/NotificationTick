@@ -31,6 +31,11 @@ public class StockRepositoryAdapter implements StockRepository {
     }
 
     @Override
+    public List<Stock> saveAll(List<Stock> lists) {
+        return repository.saveAll(lists);
+    }
+
+    @Override
     public long count() {
         return repository.count();
     }
@@ -38,5 +43,10 @@ public class StockRepositoryAdapter implements StockRepository {
     @Override
     public void deleteAll() {
         repository.deleteAll();
+    }
+
+    @Override
+    public List<String> findAllIsins() {
+        return repository.findAllIsin();
     }
 }

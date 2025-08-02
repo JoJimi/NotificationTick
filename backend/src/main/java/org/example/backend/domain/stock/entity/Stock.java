@@ -14,7 +14,8 @@ import java.util.Set;
 @Entity
 @Table(name = "stock",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uq_stock_symbol", columnNames = {"symbol"})
+                @UniqueConstraint(name = "uq_stock_symbol", columnNames = "symbol"),
+                @UniqueConstraint(name = "uq_stock_isin",   columnNames = "isin")
         })
 @Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -27,7 +28,7 @@ public class Stock extends BaseEntity {     /** 종목 **/
     private Long id;
 
     /** 주식 코드 (예: KRX 단축 코드 ("005930")) **/
-    @Column(name = "symbol", nullable = false, length = 20, unique = true)
+    @Column(name = "symbol", nullable = false, length = 20)
     private String symbol;
 
     /** 종목 이름 **/
@@ -39,7 +40,7 @@ public class Stock extends BaseEntity {     /** 종목 **/
     private String market;
 
     /** ISIN 코드 **/
-    @Column(name = "isin", nullable = false, length = 12, unique = true)
+    @Column(name = "isin", nullable = false, length = 12)
     private String isin;
 
     @Builder.Default

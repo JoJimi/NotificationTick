@@ -21,9 +21,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Optional;
+import java.util.*;
 
 @Configuration
 @RequiredArgsConstructor
@@ -72,21 +70,11 @@ public class StockDataBatchConfig {
             RestTemplate rt = restTemplate();
             ObjectMapper mapper = new ObjectMapper();
 
-            // 1) 첫 호출: 전체 건수(totalCount) 조회
-            URI firstUri = URI.create(apiUrl
-                    + "?serviceKey=" + serviceKey
-                    + "&resultType=json"
-                    + "&numOfRows=" + pageSize
-                    + "&pageNo=1");
-            String firstJson = rt.getForObject(firstUri, String.class);
-            JsonNode body = mapper.readTree(firstJson)
-                    .path("response")
-                    .path("body");
-            int totalCount = body.path("totalCount").asInt();
-            int totalPage = (totalCount + pageSize - 1) / pageSize;
+            Set<String> existingIsins = new HashSet<>(stockRepository.findAllIsins());
 
-            // 2) 페이지마다 반복 호출 -> 기존 데이터 수는 300만개, 그러나 시간이 너무 오래걸림 -> 1만개로 축소
-            // 나중에 300만개 모두 받으려면 10 -> totalPage로 리펙토링
+            if(!existingIsins.isEmpty()) return RepeatStatus.FINISHED;
+
+            List<Stock> toSave = new ArrayList<>();
             for (int page = 1; page <= 10; page++) {
                 URI uri = URI.create(apiUrl
                         + "?serviceKey=" + serviceKey
@@ -95,9 +83,8 @@ public class StockDataBatchConfig {
                         + "&pageNo=" + page);
 
                 String json = rt.getForObject(uri, String.class);
-                if (json == null) {
-                    continue;
-                }
+
+                if (json == null) continue;
 
                 JsonNode items = mapper.readTree(json)
                         .path("response")
@@ -109,19 +96,21 @@ public class StockDataBatchConfig {
                     for (JsonNode item : items) {
                         String symbol = item.path("srtnCd").asText();
                         // 이미 존재하는 심볼이면 건너뛰기
-                        Optional<Stock> existing = stockRepository.findBySymbol(symbol);
-                        if (existing.isPresent()) {
-                            continue;
-                        }
+                        if (existingIsins.contains(symbol)) continue;
+                        existingIsins.add(symbol);
 
-                        Stock stock = Stock.builder()
-                                .symbol(item.path("srtnCd").asText())
+                        toSave.add(Stock.builder()
+                                .symbol(symbol)
                                 .name(item.path("itmsNm").asText())
                                 .market(item.path("mrktCtg").asText())
                                 .isin(item.path("isinCd").asText())
-                                .build();
-                        stockRepository.save(stock);
+                                .build());
                     }
+                }
+                // 페이지 단위로 배치 저장 (원하는 빈도로)
+                if (!toSave.isEmpty()) {
+                    stockRepository.saveAll(toSave);
+                    toSave.clear();
                 }
             }
 
