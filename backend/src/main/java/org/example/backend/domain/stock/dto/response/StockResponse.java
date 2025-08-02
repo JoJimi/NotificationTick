@@ -11,12 +11,12 @@ public record StockResponse(
         @Schema(description = "주식 코드", example = "900110")
         String symbol,
 
-        @Schema(description = "사용자 식별자(ID)", example = "이스트아시아홀딩스")
+        @Schema(description = "종목 이름", example = "이스트아시아홀딩스")
         String name,
 
-        @Schema(description = "사용자 식별자(ID)", example = "KOSDAQ")
+        @Schema(description = "거래소/시장", example = "KOSDAQ")
         String market,
 
-        @Schema(description = "사용자 식별자(ID)", example = "HK0000057197")
+        @Schema(description = "ISIN 코드", example = "HK0000057197")
         String isin
 ) { }
