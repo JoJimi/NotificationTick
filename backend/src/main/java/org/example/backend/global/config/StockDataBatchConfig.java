@@ -70,23 +70,8 @@ public class StockDataBatchConfig {
             RestTemplate rt = restTemplate();
             ObjectMapper mapper = new ObjectMapper();
 
-            // 1) 첫 호출: 전체 건수(totalCount) 조회
-            URI firstUri = URI.create(apiUrl
-                    + "?serviceKey=" + serviceKey
-                    + "&resultType=json"
-                    + "&numOfRows=" + pageSize
-                    + "&pageNo=1");
-            String firstJson = rt.getForObject(firstUri, String.class);
-            JsonNode body = mapper.readTree(firstJson)
-                    .path("response")
-                    .path("body");
-            int totalCount = body.path("totalCount").asInt();
-            int totalPage = (totalCount + pageSize - 1) / pageSize;
-
-            // 2) 이미 있는 심볼 한 번에 로드
             Set<String> existingSymbols = new HashSet<>(stockRepository.findAllSymbols());
 
-            // 3) 페이지마다 반복 호출
             List<Stock> toSave = new ArrayList<>();
             for (int page = 1; page <= 10; page++) {
                 URI uri = URI.create(apiUrl
