@@ -70,7 +70,7 @@ public class StockDataBatchConfig {
             RestTemplate rt = restTemplate();
             ObjectMapper mapper = new ObjectMapper();
 
-            Set<String> existingSymbols = new HashSet<>(stockRepository.findAllSymbols());
+            Set<String> existingIsins = new HashSet<>(stockRepository.findAllIsins());
 
             List<Stock> toSave = new ArrayList<>();
             for (int page = 1; page <= 10; page++) {
@@ -94,8 +94,8 @@ public class StockDataBatchConfig {
                     for (JsonNode item : items) {
                         String symbol = item.path("srtnCd").asText();
                         // 이미 존재하는 심볼이면 건너뛰기
-                        if (existingSymbols.contains(symbol)) continue;
-                        existingSymbols.add(symbol);
+                        if (existingIsins.contains(symbol)) continue;
+                        existingIsins.add(symbol);
 
                         toSave.add(Stock.builder()
                                 .symbol(symbol)
