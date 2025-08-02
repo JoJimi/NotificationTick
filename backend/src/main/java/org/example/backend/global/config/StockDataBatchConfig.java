@@ -72,6 +72,8 @@ public class StockDataBatchConfig {
 
             Set<String> existingIsins = new HashSet<>(stockRepository.findAllIsins());
 
+            if(!existingIsins.isEmpty()) return RepeatStatus.FINISHED;
+
             List<Stock> toSave = new ArrayList<>();
             for (int page = 1; page <= 10; page++) {
                 URI uri = URI.create(apiUrl
