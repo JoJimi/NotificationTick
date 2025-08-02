@@ -21,8 +21,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Configuration
@@ -88,10 +86,9 @@ public class StockDataBatchConfig {
             // 2) 이미 있는 심볼 한 번에 로드
             Set<String> existingSymbols = new HashSet<>(stockRepository.findAllSymbols());
 
-            // 3) 페이지마다 반복 호출 -> 기존 데이터 수는 300만개, 그러나 시간이 너무 오래걸림 -> 10만개로 축소
-            // 나중에 300만개 모두 받으려면 100 -> totalPage로 리펙토링
+            // 3) 페이지마다 반복 호출
             List<Stock> toSave = new ArrayList<>();
-            for (int page = 1; page <= 100; page++) {
+            for (int page = 1; page <= 10; page++) {
                 URI uri = URI.create(apiUrl
                         + "?serviceKey=" + serviceKey
                         + "&resultType=json"
