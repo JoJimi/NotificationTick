@@ -23,7 +23,7 @@ import org.springframework.web.client.RestTemplate;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
+import java.util.*;
 
 @Configuration
 @RequiredArgsConstructor
@@ -85,9 +85,13 @@ public class StockDataBatchConfig {
             int totalCount = body.path("totalCount").asInt();
             int totalPage = (totalCount + pageSize - 1) / pageSize;
 
-            // 2) 페이지마다 반복 호출 -> 기존 데이터 수는 300만개, 그러나 시간이 너무 오래걸림 -> 1만개로 축소
-            // 나중에 300만개 모두 받으려면 10 -> totalPage로 리펙토링
-            for (int page = 1; page <= 10; page++) {
+            // 2) 이미 있는 심볼 한 번에 로드
+            Set<String> existingSymbols = new HashSet<>(stockRepository.findAllSymbols());
+
+            // 3) 페이지마다 반복 호출 -> 기존 데이터 수는 300만개, 그러나 시간이 너무 오래걸림 -> 10만개로 축소
+            // 나중에 300만개 모두 받으려면 100 -> totalPage로 리펙토링
+            List<Stock> toSave = new ArrayList<>();
+            for (int page = 1; page <= 100; page++) {
                 URI uri = URI.create(apiUrl
                         + "?serviceKey=" + serviceKey
                         + "&resultType=json"
@@ -95,9 +99,8 @@ public class StockDataBatchConfig {
                         + "&pageNo=" + page);
 
                 String json = rt.getForObject(uri, String.class);
-                if (json == null) {
-                    continue;
-                }
+
+                if (json == null) continue;
 
                 JsonNode items = mapper.readTree(json)
                         .path("response")
@@ -109,19 +112,21 @@ public class StockDataBatchConfig {
                     for (JsonNode item : items) {
                         String symbol = item.path("srtnCd").asText();
                         // 이미 존재하는 심볼이면 건너뛰기
-                        Optional<Stock> existing = stockRepository.findBySymbol(symbol);
-                        if (existing.isPresent()) {
-                            continue;
-                        }
+                        if (existingSymbols.contains(symbol)) continue;
+                        existingSymbols.add(symbol);
 
-                        Stock stock = Stock.builder()
-                                .symbol(item.path("srtnCd").asText())
+                        toSave.add(Stock.builder()
+                                .symbol(symbol)
                                 .name(item.path("itmsNm").asText())
                                 .market(item.path("mrktCtg").asText())
                                 .isin(item.path("isinCd").asText())
-                                .build();
-                        stockRepository.save(stock);
+                                .build());
                     }
+                }
+                // 페이지 단위로 배치 저장 (원하는 빈도로)
+                if (!toSave.isEmpty()) {
+                    stockRepository.saveAll(toSave);
+                    toSave.clear();
                 }
             }
 
