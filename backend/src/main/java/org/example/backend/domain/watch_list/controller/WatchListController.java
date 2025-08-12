@@ -6,6 +6,8 @@ import org.example.backend.domain.stock.service.StockService;
 import org.example.backend.domain.watch_list.dto.response.WatchListResponse;
 import org.example.backend.domain.watch_list.service.WatchListService;
 import org.example.backend.global.jwt.custom.CustomUserDetails;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -62,10 +64,11 @@ public class WatchListController {
 
     /** 내 관심종목 리스트(최신순) + 각 항목 관심수 */
     @GetMapping("/me")
-    public ResponseEntity<List<StockResponse>> myList(
-            @AuthenticationPrincipal CustomUserDetails principal
+    public ResponseEntity<Page<StockResponse>> myList(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            Pageable pageable
     ) {
         Long userId = principal.getUser().getId();
-        return ResponseEntity.ok(stockService.getMyWatchStocks(userId));
+        return ResponseEntity.ok(stockService.getMyWatchStocks(userId, pageable));
     }
 }
