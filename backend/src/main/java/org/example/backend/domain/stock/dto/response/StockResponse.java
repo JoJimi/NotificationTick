@@ -18,5 +18,8 @@ public record StockResponse(
         String market,
 
         @Schema(description = "ISIN 코드", example = "HK0000057197")
-        String isin
+        String isin,
+
+        @Schema(description = "관심 종목 수", example = "1234")
+        long watchCount
 ) { }

@@ -1,6 +1,7 @@
 package org.example.backend.domain.stock.repository.adapter;
 
 import lombok.RequiredArgsConstructor;
+import org.example.backend.domain.stock.dto.response.StockResponse;
 import org.example.backend.domain.stock.entity.Stock;
 import org.example.backend.domain.stock.repository.SpringDataStockRepository;
 import org.example.backend.domain.stock.repository.StockRepository;
@@ -16,6 +17,11 @@ public class StockRepositoryAdapter implements StockRepository {
     private final SpringDataStockRepository repository;
 
     @Override
+    public Optional<Stock> findById(Long id) { // (추가)
+        return repository.findById(id);
+    }
+
+    @Override
     public Optional<Stock> findBySymbol(String symbol) {
         return repository.findBySymbol(symbol);
     }
@@ -23,6 +29,21 @@ public class StockRepositoryAdapter implements StockRepository {
     @Override
     public List<Stock> findAll() {
         return repository.findAll();
+    }
+
+    @Override
+    public List<StockResponse> findAllOrderByWatchCountDesc() {
+        return repository.findAllOrderByWatchCountDesc();
+    }
+
+    @Override
+    public Optional<StockResponse> findWithWatchCountBySymbol(String symbol) {
+        return repository.findWithWatchCountBySymbol(symbol);
+    }
+
+    @Override
+    public List<StockResponse> findWatchingStocksByUserId(Long userId) {
+        return repository.findWatchingStocksByUserId(userId);
     }
 
     @Override
