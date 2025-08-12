@@ -1,9 +1,12 @@
 package org.example.backend.domain.stock.repository.adapter;
 
 import lombok.RequiredArgsConstructor;
+import org.example.backend.domain.stock.dto.response.StockResponse;
 import org.example.backend.domain.stock.entity.Stock;
 import org.example.backend.domain.stock.repository.SpringDataStockRepository;
 import org.example.backend.domain.stock.repository.StockRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,6 +19,11 @@ public class StockRepositoryAdapter implements StockRepository {
     private final SpringDataStockRepository repository;
 
     @Override
+    public Optional<Stock> findById(Long id) { // (추가)
+        return repository.findById(id);
+    }
+
+    @Override
     public Optional<Stock> findBySymbol(String symbol) {
         return repository.findBySymbol(symbol);
     }
@@ -23,6 +31,31 @@ public class StockRepositoryAdapter implements StockRepository {
     @Override
     public List<Stock> findAll() {
         return repository.findAll();
+    }
+
+    @Override
+    public Optional<StockResponse> findWithWatchCountBySymbol(String symbol) {
+        return repository.findWithWatchCountBySymbol(symbol);
+    }
+
+    @Override
+    public Page<StockResponse> findAllWithWatchCountOrderBySymbolAsc(Pageable pageable){
+        return repository.findAllWithWatchCountOrderBySymbolAsc(pageable);
+    }
+
+    @Override
+    public Page<StockResponse> searchWithWatchCountByKeyword(String keyword, Pageable pageable){
+        return repository.searchWithWatchCountByKeyword(keyword, pageable);
+    }
+
+    @Override
+    public Page<StockResponse> findAllOrderByWatchCountDesc(Pageable pageable){
+        return repository.findAllOrderByWatchCountDesc(pageable);
+    }
+
+    @Override
+    public Page<StockResponse> findWatchingStocksByUserId(Long userId, Pageable pageable){
+        return repository.findWatchingStocksByUserId(userId, pageable);
     }
 
     @Override
