@@ -10,21 +10,10 @@ import java.util.Objects;
  */
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class WatchListId implements Serializable {
 
     private Long user;
     private Long stock;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        WatchListId that = (WatchListId) o;
-        return Objects.equals(user, that.user) && Objects.equals(stock, that.stock);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(user, stock);
-    }
 }
