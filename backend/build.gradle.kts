@@ -31,7 +31,7 @@ dependencies {
 	testImplementation("org.springframework.batch:spring-batch-test")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
-	// Spring Security + OAuth2 Client
+	// Security + OAuth2
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 
@@ -42,8 +42,8 @@ dependencies {
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
 
 	// Redis
-	implementation ("org.springframework.boot:spring-boot-starter-data-redis")
-	implementation ("org.apache.commons:commons-pool2")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+	implementation("org.apache.commons:commons-pool2")
 
 	// JWT
 	implementation("io.jsonwebtoken:jjwt-api:0.11.5")
@@ -54,6 +54,12 @@ dependencies {
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 
+	// QueryDSL
+	implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
+	annotationProcessor("com.querydsl:querydsl-apt:5.0.0:jakarta")
+	annotationProcessor("jakarta.annotation:jakarta.annotation-api")
+	annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -61,4 +67,17 @@ dependencies {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+// QueryDSL Q-클래스 생성 경로
+val querydslDir = "build/generated/sources/annotationProcessor/java/main"
+
+tasks.withType<JavaCompile> {
+	options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
+}
+
+sourceSets {
+	named("main") {
+		java.srcDir(querydslDir)
+	}
 }
