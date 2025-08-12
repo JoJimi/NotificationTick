@@ -16,7 +16,6 @@ import java.util.Optional;
 public class StockQueryRepositoryImpl implements StockQueryRepository {
 
     private final JPAQueryFactory qf;
-
     private final QStock s = QStock.stock;
     private final QWatchList w = QWatchList.watchList;
     private final QWatchList wUser = new QWatchList("wUser");
@@ -26,7 +25,6 @@ public class StockQueryRepositoryImpl implements StockQueryRepository {
         return qf.select(Projections.constructor(
                         StockResponse.class,
                         s.id, s.symbol, s.name, s.market, s.isin,
-                        // 🔧 복합키라 단일 id 없음 → 사용자 id 기준으로 카운트
                         w.user.id.count()
                 ))
                 .from(s)
@@ -52,12 +50,50 @@ public class StockQueryRepositoryImpl implements StockQueryRepository {
         );
     }
 
+    // 기본 목록: symbol ASC
+    @Override
+    public List<StockResponse> findAllWithWatchCountOrderBySymbolAsc() {
+        return qf.select(Projections.constructor(
+                        StockResponse.class,
+                        s.id, s.symbol, s.name, s.market, s.isin,
+                        w.user.id.count()
+                ))
+                .from(s)
+                .leftJoin(s.watchList, w)
+                .groupBy(s.id, s.symbol, s.name, s.market, s.isin)
+                .orderBy(s.symbol.asc())
+                .fetch();
+    }
+
+    // 키워드 검색: symbol/name LIKE, symbol ASC
+    @Override
+    public List<StockResponse> searchWithWatchCountByKeyword(String keyword) {
+        String k = keyword == null ? "" : keyword.trim();
+        return qf.select(Projections.constructor(
+                        StockResponse.class,
+                        s.id, s.symbol, s.name, s.market, s.isin,
+                        w.user.id.count()
+                ))
+                .from(s)
+                .leftJoin(s.watchList, w)
+                .where(
+                        k.isEmpty()
+                                ? null
+                                : s.symbol.containsIgnoreCase(k)
+                                .or(s.name.containsIgnoreCase(k))
+                )
+                .groupBy(s.id, s.symbol, s.name, s.market, s.isin)
+                .orderBy(s.symbol.asc())
+                .fetch();
+    }
+
+    // 내가 누른 관심종목 리스트 반환
     @Override
     public List<StockResponse> findWatchingStocksByUserId(Long userId) {
         return qf.select(Projections.constructor(
                         StockResponse.class,
                         s.id, s.symbol, s.name, s.market, s.isin,
-                        w.user.id.count() // 전체 관심수 집계
+                        w.user.id.count() // 전체 관심수
                 ))
                 .from(s)
                 .join(s.watchList, wUser).on(wUser.user.id.eq(userId)) // 내가 누른 것만

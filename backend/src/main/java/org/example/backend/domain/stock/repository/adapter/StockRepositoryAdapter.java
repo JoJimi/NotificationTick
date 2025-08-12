@@ -42,6 +42,16 @@ public class StockRepositoryAdapter implements StockRepository {
     }
 
     @Override
+    public List<StockResponse> findAllWithWatchCountOrderBySymbolAsc() {
+        return repository.findAllWithWatchCountOrderBySymbolAsc();
+    }
+
+    @Override
+    public List<StockResponse> searchWithWatchCountByKeyword(String keyword) {
+        return repository.searchWithWatchCountByKeyword(keyword);
+    }
+
+    @Override
     public List<StockResponse> findWatchingStocksByUserId(Long userId) {
         return repository.findWatchingStocksByUserId(userId);
     }

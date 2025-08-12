@@ -16,8 +16,18 @@ public class StockService {
 
     private final StockRepository stockRepository;
 
-    /** 전체 종목 조회 + 관심수 포함(내림차순) */
-    public List<StockResponse> getStocksAll() {
+    /** 기본 목록(symbol ASC) */
+    public List<StockResponse> getStocksAllOrderBySymbolAsc() {
+        return stockRepository.findAllWithWatchCountOrderBySymbolAsc();
+    }
+
+    /** 종목 검색 */
+    public List<StockResponse> searchStocks(String keyword) {
+        return stockRepository.searchWithWatchCountByKeyword(keyword);
+    }
+
+    /** 랭킹(관심수 DESC) */
+    public List<StockResponse> getStocksRanking() {
         return stockRepository.findAllOrderByWatchCountDesc();
     }
 
@@ -31,5 +41,6 @@ public class StockService {
     public List<StockResponse> getMyWatchStocks(Long userId) {
         return stockRepository.findWatchingStocksByUserId(userId);
     }
+
 }
 

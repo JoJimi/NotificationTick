@@ -4,10 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.backend.domain.stock.dto.response.StockResponse;
 import org.example.backend.domain.stock.service.StockService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -18,20 +15,27 @@ public class StockController {
 
     private final StockService stockService;
 
-    /** 전체 종목 조회: GET /api/stock */
+    /** 기본 목록/검색: GET /api/stock?q= */
     @GetMapping
-    public ResponseEntity<List<StockResponse>> getAllStocks() {
-        List<StockResponse> responses = stockService.getStocksAll();
+    public ResponseEntity<List<StockResponse>> list(
+            @RequestParam(value = "keyword", required = false) String keyword
+    ) {
+        List<StockResponse> responses =
+                (keyword == null || keyword.isBlank())
+                        ? stockService.getStocksAllOrderBySymbolAsc()
+                        : stockService.searchStocks(keyword);
         return ResponseEntity.ok(responses);
     }
 
-    /** 단일 종목 조회: GET /api/stock/{symbol} */
-    @GetMapping("/{symbol}")
-    public ResponseEntity<StockResponse> getStock(
-            @PathVariable("symbol") String symbol
-    ) {
-        StockResponse response = stockService.getStockBySymbol(symbol);
-        return ResponseEntity.ok(response);
+    /** 랭킹(관심수 DESC): GET /api/stock/ranking */
+    @GetMapping("/ranking")
+    public ResponseEntity<List<StockResponse>> ranking() {
+        return ResponseEntity.ok(stockService.getStocksRanking());
     }
 
+    /** 단건 조회: GET /api/stock/{symbol} */
+    @GetMapping("/{symbol}")
+    public ResponseEntity<StockResponse> getStock(@PathVariable String symbol) {
+        return ResponseEntity.ok(stockService.getStockBySymbol(symbol));
+    }
 }

@@ -11,10 +11,11 @@ public interface StockRepository {
     Optional<Stock> findBySymbol(String symbol);
     List<Stock> findAll();
 
-    // 읽기 전용 쿼리 모델 (관심수 포함)
     List<StockResponse> findAllOrderByWatchCountDesc();
     Optional<StockResponse> findWithWatchCountBySymbol(String symbol);
 
+    List<StockResponse> findAllWithWatchCountOrderBySymbolAsc();
+    List<StockResponse> searchWithWatchCountByKeyword(String keyword);
     List<StockResponse> findWatchingStocksByUserId(Long userId);
 
     Stock save(Stock stock);
