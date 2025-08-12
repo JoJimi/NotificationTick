@@ -6,6 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.example.backend.domain.stock.dto.response.StockResponse;
 import org.example.backend.domain.stock.entity.QStock;
 import org.example.backend.domain.watch_list.entity.QWatchList;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,8 +24,9 @@ public class StockQueryRepositoryImpl implements StockQueryRepository {
     private final QWatchList wUser = new QWatchList("wUser");
 
     @Override
-    public List<StockResponse> findAllOrderByWatchCountDesc() {
-        return qf.select(Projections.constructor(
+    public Page<StockResponse> findAllOrderByWatchCountDesc(Pageable pageable) {
+        // content
+        List<StockResponse> content = qf.select(Projections.constructor(
                         StockResponse.class,
                         s.id, s.symbol, s.name, s.market, s.isin,
                         w.user.id.count()
@@ -30,8 +34,14 @@ public class StockQueryRepositoryImpl implements StockQueryRepository {
                 .from(s)
                 .leftJoin(s.watchList, w)
                 .groupBy(s.id, s.symbol, s.name, s.market, s.isin)
-                .orderBy(w.user.id.count().desc())
+                .orderBy(w.user.id.count().desc(), s.symbol.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
+
+        // total (집계가 아니라 Stock 전체 카운트면 충분)
+        Long total = qf.select(s.count()).from(s).fetchOne();
+        return new PageImpl<>(content, pageable, total == null ? 0 : total);
     }
 
     @Override
@@ -52,8 +62,8 @@ public class StockQueryRepositoryImpl implements StockQueryRepository {
 
     // 기본 목록: symbol ASC
     @Override
-    public List<StockResponse> findAllWithWatchCountOrderBySymbolAsc() {
-        return qf.select(Projections.constructor(
+    public Page<StockResponse> findAllWithWatchCountOrderBySymbolAsc(Pageable pageable) {
+        List<StockResponse> content = qf.select(Projections.constructor(
                         StockResponse.class,
                         s.id, s.symbol, s.name, s.market, s.isin,
                         w.user.id.count()
@@ -62,35 +72,50 @@ public class StockQueryRepositoryImpl implements StockQueryRepository {
                 .leftJoin(s.watchList, w)
                 .groupBy(s.id, s.symbol, s.name, s.market, s.isin)
                 .orderBy(s.symbol.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
+
+        Long total = qf.select(s.count()).from(s).fetchOne();
+        return new PageImpl<>(content, pageable, total == null ? 0 : total);
     }
 
     // 키워드 검색: symbol/name LIKE, symbol ASC
     @Override
-    public List<StockResponse> searchWithWatchCountByKeyword(String keyword) {
+    public Page<StockResponse> searchWithWatchCountByKeyword(String keyword, Pageable pageable) {
         String k = keyword == null ? "" : keyword.trim();
-        return qf.select(Projections.constructor(
+
+        // content
+        List<StockResponse> content = qf.select(Projections.constructor(
                         StockResponse.class,
                         s.id, s.symbol, s.name, s.market, s.isin,
                         w.user.id.count()
                 ))
                 .from(s)
                 .leftJoin(s.watchList, w)
-                .where(
-                        k.isEmpty()
-                                ? null
-                                : s.symbol.containsIgnoreCase(k)
-                                .or(s.name.containsIgnoreCase(k))
-                )
+                .where(k.isEmpty() ? null :
+                        s.symbol.containsIgnoreCase(k).or(s.name.containsIgnoreCase(k)))
                 .groupBy(s.id, s.symbol, s.name, s.market, s.isin)
                 .orderBy(s.symbol.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
+
+        // total
+        Long total = qf.select(s.count())
+                .from(s)
+                .where(k.isEmpty() ? null :
+                        s.symbol.containsIgnoreCase(k).or(s.name.containsIgnoreCase(k)))
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total == null ? 0 : total);
     }
 
     // 내가 누른 관심종목 리스트 반환
     @Override
-    public List<StockResponse> findWatchingStocksByUserId(Long userId) {
-        return qf.select(Projections.constructor(
+    public Page<StockResponse> findWatchingStocksByUserId(Long userId, Pageable pageable) {
+        // content
+        List<StockResponse> content = qf.select(Projections.constructor(
                         StockResponse.class,
                         s.id, s.symbol, s.name, s.market, s.isin,
                         w.user.id.count() // 전체 관심수
@@ -98,8 +123,18 @@ public class StockQueryRepositoryImpl implements StockQueryRepository {
                 .from(s)
                 .join(s.watchList, wUser).on(wUser.user.id.eq(userId)) // 내가 누른 것만
                 .leftJoin(s.watchList, w) // 전체 관심수 집계용
-                .groupBy(s.id, s.symbol, s.name, s.market, s.isin, wUser.createdAt)
-                .orderBy(wUser.createdAt.desc())
+                .groupBy(s.id, s.symbol, s.name, s.market, s.isin)
+                .orderBy(wUser.createdAt.max().desc()) // ✅ groupBy에 createdAt 안 넣고 max로 정렬
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
+
+        // total: 내 관심 종목 개수
+        Long total = qf.select(wUser.count())
+                .from(wUser)
+                .where(wUser.user.id.eq(userId))
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total == null ? 0 : total);
     }
 }

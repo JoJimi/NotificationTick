@@ -5,6 +5,8 @@ import org.example.backend.domain.stock.dto.response.StockResponse;
 import org.example.backend.domain.stock.entity.Stock;
 import org.example.backend.domain.stock.repository.StockRepository;
 import org.example.backend.global.exception.stock.StockBySymbolNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,18 +19,18 @@ public class StockService {
     private final StockRepository stockRepository;
 
     /** 기본 목록(symbol ASC) */
-    public List<StockResponse> getStocksAllOrderBySymbolAsc() {
-        return stockRepository.findAllWithWatchCountOrderBySymbolAsc();
+    public Page<StockResponse> getStocksAllOrderBySymbolAsc(Pageable pageable) {
+        return stockRepository.findAllWithWatchCountOrderBySymbolAsc(pageable);
     }
 
     /** 종목 검색 */
-    public List<StockResponse> searchStocks(String keyword) {
-        return stockRepository.searchWithWatchCountByKeyword(keyword);
+    public Page<StockResponse> searchStocks(String q, Pageable pageable) {
+        return stockRepository.searchWithWatchCountByKeyword(q, pageable);
     }
 
     /** 랭킹(관심수 DESC) */
-    public List<StockResponse> getStocksRanking() {
-        return stockRepository.findAllOrderByWatchCountDesc();
+    public Page<StockResponse> getStocksRanking(Pageable pageable) {
+        return stockRepository.findAllOrderByWatchCountDesc(pageable);
     }
 
     /** 단일 종목(symbol) 조회 + 관심수 포함 */
@@ -38,8 +40,8 @@ public class StockService {
     }
 
     /** 내가 관심등록한 종목 리스트(최신순) + 각 항목 관심수 포함 */
-    public List<StockResponse> getMyWatchStocks(Long userId) {
-        return stockRepository.findWatchingStocksByUserId(userId);
+    public Page<StockResponse> getMyWatchStocks(Long userId, Pageable pageable) {
+        return stockRepository.findWatchingStocksByUserId(userId, pageable);
     }
 
 }

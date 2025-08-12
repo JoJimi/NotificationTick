@@ -5,6 +5,8 @@ import org.example.backend.domain.stock.dto.response.StockResponse;
 import org.example.backend.domain.stock.entity.Stock;
 import org.example.backend.domain.stock.repository.SpringDataStockRepository;
 import org.example.backend.domain.stock.repository.StockRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -32,28 +34,28 @@ public class StockRepositoryAdapter implements StockRepository {
     }
 
     @Override
-    public List<StockResponse> findAllOrderByWatchCountDesc() {
-        return repository.findAllOrderByWatchCountDesc();
-    }
-
-    @Override
     public Optional<StockResponse> findWithWatchCountBySymbol(String symbol) {
         return repository.findWithWatchCountBySymbol(symbol);
     }
 
     @Override
-    public List<StockResponse> findAllWithWatchCountOrderBySymbolAsc() {
-        return repository.findAllWithWatchCountOrderBySymbolAsc();
+    public Page<StockResponse> findAllWithWatchCountOrderBySymbolAsc(Pageable pageable){
+        return repository.findAllWithWatchCountOrderBySymbolAsc(pageable);
     }
 
     @Override
-    public List<StockResponse> searchWithWatchCountByKeyword(String keyword) {
-        return repository.searchWithWatchCountByKeyword(keyword);
+    public Page<StockResponse> searchWithWatchCountByKeyword(String keyword, Pageable pageable){
+        return repository.searchWithWatchCountByKeyword(keyword, pageable);
     }
 
     @Override
-    public List<StockResponse> findWatchingStocksByUserId(Long userId) {
-        return repository.findWatchingStocksByUserId(userId);
+    public Page<StockResponse> findAllOrderByWatchCountDesc(Pageable pageable){
+        return repository.findAllOrderByWatchCountDesc(pageable);
+    }
+
+    @Override
+    public Page<StockResponse> findWatchingStocksByUserId(Long userId, Pageable pageable){
+        return repository.findWatchingStocksByUserId(userId, pageable);
     }
 
     @Override
