@@ -1,0 +1,69 @@
+name: Frontend CI/CD Pipeline
+
+on:
+  push:
+    branches: [ develop ]
+    paths:
+      - 'frontend/**'
+
+defaults:
+  run:
+    shell: bash
+    working-directory: frontend
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint (if present)
+        run: npm run lint --if-present
+
+      - name: Test (if present)
+        run: npm test --if-present
+
+      - name: Build
+        run: npm run build
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: frontend/Dockerfile
+          push: true
+          tags: |
+            jimineutron/notification_tick-frontend:latest
+            jimineutron/notification_tick-frontend:${{ github.sha }}
+
+      - name: Notify Slack (success)
+        if: ${{ success() }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_COLOR: '#00FF00'
+          SLACK_TITLE: 'Frontend Build'
+          SLACK_TEXT: |
+            ✅ 프론트엔드 이미지 푸시 성공
+            - jimineutron/notification_tick-frontend:${{ github.sha }}
