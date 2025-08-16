@@ -16,15 +16,15 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgresql:
-        image: postgresql:15-alpine
+        image: postgres
         env:
-          POSTGRES_USERNAME: ${{ secrets.POSTGRES_USERNAME }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USERNAME }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U $${POSTGRES_USER}"
+          --health-cmd="pg_isready -U $${POSTGRES_USERNAME}"
           --health-interval=5s
           --health-timeout=5s
           --health-retries=10
