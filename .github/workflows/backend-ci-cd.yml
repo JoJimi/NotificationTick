@@ -57,9 +57,11 @@ jobs:
 
       - name: Build with Gradle
         env:
+          SPRING_PROFILES_ACTIVE: dev
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
           POSTGRES_USERNAME: ${{ secrets.POSTGRES_USERNAME }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: ./gradlew build
 
       - name: Log in to DockerHub
