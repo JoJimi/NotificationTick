@@ -34,6 +34,11 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
+      - name: Restore application.yml from secret
+        run: |
+          touch src/main/resources/application-dev.yml
+          echo "${{ secrets.APPLICATION_YML }}" > ./src/main/resources/application-dev.yml
+
       - name: Make Docker Env
         run: |
           touch ./.env
