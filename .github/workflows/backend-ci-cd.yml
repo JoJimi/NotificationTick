@@ -10,7 +10,7 @@ on:
 defaults:
   run:
     shell: bash
-    working-directory: backend
+    working-directory: ./backend
 
 jobs:
   build-and-push:
@@ -41,10 +41,10 @@ jobs:
 
       - name: Make application.yml from secret
         run: |
-          touch ./src/main/resources/application-dev.yml
-          touch ./src/main/resources/application-prod.yml
-          echo "${{ secrets.DEV }}" > ./src/main/resources/application-dev.yml
-          echo "${{ secrets.PROD }}" > ./src/main/resources/application-prod.yml
+          mkdir -p src/main/resources
+          echo "${{ secrets.APPLICATION }}" > src/main/resources/application.yml
+          echo "${{ secrets.DEV }}" > src/main/resources/application-dev.yml
+          echo "${{ secrets.PROD }}" > src/main/resources/application-prod.yml
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -56,12 +56,6 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build with Gradle
-        env:
-          SPRING_PROFILES_ACTIVE: dev
-          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
-          POSTGRES_USERNAME: ${{ secrets.POSTGRES_USERNAME }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: ./gradlew build
 
       - name: Log in to DockerHub
