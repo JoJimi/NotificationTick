@@ -36,8 +36,8 @@ jobs:
 
       - name: Restore application.yml from secret
         run: |
-          touch src/main/resources/application-dev.yml
-          echo "${{ secrets.APPLICATION_YML }}" > ./src/main/resources/application-dev.yml
+          touch src/main/resources/application.yml
+          echo "${{ secrets.APPLICATION_YML }}" > ./src/main/resources/application.yml
 
       - name: Make Docker Env
         run: |
