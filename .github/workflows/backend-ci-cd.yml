@@ -50,54 +50,6 @@ jobs:
           touch ./.env
           echo "${{ secrets.DOCKER_ENV }}" > ./.env
 
-      - name: Verify resources layout & .env presence
-        run: |
-          set -euo pipefail
-          echo "PWD: $(pwd)"
-          echo "=== List src/main/resources ==="
-          ls -la ./src/main/resources || true
-          echo
-
-          missing=0
-
-          echo "=== Check required resource files ==="
-          for f in application.yml application-dev.yml application-prod.yml; do
-            if [ -f "./src/main/resources/$f" ]; then
-              bytes=$(wc -c < "./src/main/resources/$f" | tr -d ' ')
-              echo "✓ Found $f (${bytes} bytes)"
-            else
-              echo "✗ Missing $f"
-              missing=1
-            fi
-          done
-          echo
-
-          echo "=== Check .env file existence ==="
-          if [ -f ./.env ]; then
-            bytes=$(wc -c < ./.env | tr -d ' ')
-            echo "✓ Found .env (${bytes} bytes)"
-            echo "→ Verifying required keys (length only, no values printed)"
-            for key in JWT_SECRET ACCESS_TOKEN_EXPR REFRESH_TOKEN_EXPR; do
-              if grep -E '^[[:space:]]*'"${key}"'[[:space:]]*=' ./.env >/dev/null; then
-                val_len=$(grep -E '^[[:space:]]*'"${key}"'[[:space:]]*=' ./.env | head -n1 | sed -E 's/^[^=]+=//' | tr -d '\r\n' | wc -c | tr -d ' ')
-                echo "  - ${key}: present (length ${val_len})"
-              else
-                echo "  - ${key}: MISSING"
-                missing=1
-              fi
-            done
-          else
-            echo "✗ Missing .env"
-            missing=1
-          fi
-          echo
-
-          echo "=== Fail if anything missing ==="
-          if [ "$missing" -ne 0 ]; then
-            echo "Required files/keys are missing. Failing the job."
-            exit 1
-          fi
-
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -113,6 +65,7 @@ jobs:
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
           POSTGRES_USERNAME: ${{ secrets.POSTGRES_USERNAME }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: ./gradlew build
 
       - name: Log in to DockerHub
