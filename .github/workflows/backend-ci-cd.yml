@@ -7,11 +7,6 @@ on:
       - 'backend/**'
       - '.github/workflows/backend-*.yml'
 
-defaults:
-  run:
-    shell: bash
-    working-directory: backend
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -36,11 +31,13 @@ jobs:
 
       - name: Make Docker Env
         run: |
+          working-directory: backend
           touch ./.env
           echo "${{ secrets.DOCKER_ENV }}" > ./.env
 
       - name: Restore application.yml from secret
         run: |
+          working-directory: backend
           cd ./src/main/resources
           touch ./application-dev.yml
           touch ./application-prod.yml
