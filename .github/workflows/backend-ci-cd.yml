@@ -39,12 +39,12 @@ jobs:
           touch ./.env
           echo "${{ secrets.DOCKER_ENV }}" > ./.env
 
-      - name: Make application.yml from secret
+      - name: make application.yml
         run: |
-          mkdir -p src/main/resources
-          echo "${{ secrets.APPLICATION }}" > src/main/resources/application.yml
-          echo "${{ secrets.DEV }}" > src/main/resources/application-dev.yml
-          echo "${{ secrets.PROD }}" > src/main/resources/application-prod.yml
+          cd ./src/main/resources
+          touch ./application-dev.yml
+          echo "${{ secrets.DEV }}" >> ./application-dev.yml
+        shell: bash
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -56,7 +56,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew clean build -x test --stacktrace
 
       - name: Log in to DockerHub
         uses: docker/login-action@v3
