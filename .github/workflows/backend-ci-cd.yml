@@ -36,8 +36,8 @@ jobs:
 
       - name: Restore application.yml from secret
         run: |
-          touch src/main/resources/application.yml
-          echo "${{ secrets.APPLICATION_YML }}" > ./src/main/resources/application.yml
+          touch src/main/resources/application-dev.yml
+          echo "${{ secrets.APPLICATION_YML }}" > ./src/main/resources/application-dev.yml
 
       - name: Make Docker Env
         run: |
@@ -55,6 +55,7 @@ jobs:
 
       - name: Build with Gradle
         env:
+          SPRING_PROFILES_ACTIVE: dev
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
           POSTGRES_USERNAME: ${{ secrets.POSTGRES_USERNAME }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
@@ -62,6 +63,7 @@ jobs:
 
       - name: Test with Gradle
         env:
+          SPRING_PROFILES_ACTIVE: dev
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
           POSTGRES_USERNAME: ${{ secrets.POSTGRES_USERNAME }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
