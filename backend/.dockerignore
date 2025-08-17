@@ -4,3 +4,7 @@ build
 .git
 .gitignore
 .env
+
+# --- 추가 ---
+!build
+!build/libs
