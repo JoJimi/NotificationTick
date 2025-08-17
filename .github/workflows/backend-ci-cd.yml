@@ -2,7 +2,7 @@ name: Backend CI/CD PipeLine
 
 on:
   pull_request:
-    branches: [ develop ]
+    branches: [ "develop" ]
     paths:
       - 'backend/**'
 
