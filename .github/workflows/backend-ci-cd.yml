@@ -5,6 +5,7 @@ on:
     branches: [ "develop" ]
     paths:
       - 'backend/**'
+      - '.github/workflows/backend-*.yml'
 
 defaults:
   run:
@@ -24,7 +25,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U $${POSTGRES_USERNAME}"
+          --health-cmd="pg_isready -U $${POSTGRES_USER}"
           --health-interval=5s
           --health-timeout=5s
           --health-retries=10
