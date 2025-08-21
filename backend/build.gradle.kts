@@ -31,6 +31,10 @@ dependencies {
 	testImplementation("org.springframework.batch:spring-batch-test")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
+	// actuator + prometheus
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	runtimeOnly("io.micrometer:micrometer-registry-prometheus")
+
 	// Security + OAuth2
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
