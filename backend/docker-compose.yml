@@ -1,0 +1,59 @@
+services:
+  postgres-dev:
+    image: postgres:15-alpine
+    container_name: predictick_postgres_dev
+    restart: always
+    environment:
+      POSTGRES_DB: predictick_dev
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    networks:
+      - app
+
+  redis:
+    image: redis:7-alpine
+    container_name: predictick_redis_dev
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    networks:
+      - app
+
+  prometheus:
+    image: prom/prometheus
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command: ["--config.file=/etc/prometheus/prometheus.yml"]
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - monitoring
+
+volumes:
+  pgdata_dev:
+  redisdata:
+  grafana-data:
+
+networks:
+  app:
+  monitoring:
