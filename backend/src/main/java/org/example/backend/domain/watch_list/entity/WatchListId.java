@@ -1,9 +1,7 @@
 package org.example.backend.domain.watch_list.entity;
 
-
 import lombok.*;
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * WatchList의 복합키 (user_id, stock_id)를 표현

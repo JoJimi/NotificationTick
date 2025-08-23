@@ -8,7 +8,18 @@ import org.example.backend.global.entity.BaseEntity;
 import java.time.OffsetDateTime;
 
 @Entity
-@Table(name = "news")
+@Table(
+        name = "news",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_news_stock_title_published_source",
+                        columnNames = {"stock_id", "title", "published_at", "source"}
+                )
+        },
+        indexes = {
+                @Index(name = "idx_news_stock_published", columnList = "stock_id,published_at DESC")
+        }
+)
 @Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -32,9 +43,13 @@ public class News extends BaseEntity {     /** 뉴스 요약 **/
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
-    /** 뉴스 요약 (JSONB) **/
-    @Column(name = "summary", columnDefinition = "jsonb")
+    /** 뉴스 요약 (TEXT) **/
+    @Column(name = "summary", columnDefinition = "TEXT")
     private String summary;
+
+    /** 언론사(출처) **/
+    @Column(name = "source", length = 100)
+    private String source;
 
     /** 뉴스 공개 일시 **/
     @Column(name = "published_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
