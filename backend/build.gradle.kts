@@ -28,6 +28,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-batch")
+	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	testImplementation("org.springframework.batch:spring-batch-test")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
@@ -57,6 +58,9 @@ dependencies {
 	// Lombok
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
+
+	// jsoup
+	implementation("org.jsoup:jsoup:1.21.1")
 
 	// QueryDSL
 	implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
