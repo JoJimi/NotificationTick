@@ -1,10 +1,9 @@
 package org.example.backend.domain.watch_list.repository;
 
+import org.example.backend.domain.stock.entity.Stock;
 import org.example.backend.domain.watch_list.entity.WatchList;
-import org.example.backend.domain.watch_list.entity.WatchListId;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public interface WatchListRepository {
     boolean existsByUserIdAndStockId(Long userId, Long stockId);
@@ -18,4 +17,8 @@ public interface WatchListRepository {
     List<WatchList> findByUserIdOrderByCreatedAtDesc(Long userId);
 
     WatchList save(WatchList watchList);
+
+    List<Stock> findDistinctStockAll();
+
+    List<WatchList> findAll();
 }

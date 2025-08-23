@@ -1,6 +1,7 @@
 package org.example.backend.domain.watch_list.repository.adapter;
 
 import lombok.RequiredArgsConstructor;
+import org.example.backend.domain.stock.entity.Stock;
 import org.example.backend.domain.watch_list.entity.WatchList;
 import org.example.backend.domain.watch_list.entity.WatchListId;
 import org.example.backend.domain.watch_list.repository.SpringDataWatchListRepository;
@@ -42,5 +43,15 @@ public class WatchListRepositoryAdapter implements WatchListRepository {
     @Override
     public WatchList save(WatchList watchList) {
         return repository.save(watchList);
+    }
+
+    @Override
+    public List<Stock> findDistinctStockAll() {
+        return repository.findDistinctStockAll();
+    }
+
+    @Override
+    public List<WatchList> findAll() {
+        return repository.findAll();
     }
 }
