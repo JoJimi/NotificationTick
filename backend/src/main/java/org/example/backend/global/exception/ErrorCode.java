@@ -23,6 +23,9 @@ public enum ErrorCode {
     // 종목
     STOCK_BY_SYMBOL_NOT_FOUND(HttpStatus.NOT_FOUND, "ES001", "심볼에 해당하는 종목을 찾을 수 없습니다."),
 
+    // 관심 종목
+    WATCHING_STOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "EWS001", "해당 종목은 내 관심 목록에 없습니다."),
+
     // 인증·인가
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED,     "EAU001", "인증에 실패했습니다."),
     FORBIDDEN(HttpStatus.FORBIDDEN,           "EAF001", "권한이 없습니다."),
