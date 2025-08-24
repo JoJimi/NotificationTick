@@ -6,8 +6,6 @@ import org.example.backend.domain.stock.entity.Stock;
 import org.example.backend.domain.user.entity.User;
 import org.example.backend.global.entity.BaseEntity;
 
-import java.time.OffsetDateTime;
-
 @Entity
 @Table(name = "watchlist")
 @IdClass(WatchListId.class)
