@@ -9,8 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -19,18 +18,8 @@ public class StockRepositoryAdapter implements StockRepository {
     private final SpringDataStockRepository repository;
 
     @Override
-    public Optional<Stock> findById(Long id) { // (추가)
-        return repository.findById(id);
-    }
-
-    @Override
     public Optional<Stock> findBySymbol(String symbol) {
         return repository.findBySymbol(symbol);
-    }
-
-    @Override
-    public List<Stock> findAll() {
-        return repository.findAll();
     }
 
     @Override
@@ -66,16 +55,6 @@ public class StockRepositoryAdapter implements StockRepository {
     @Override
     public List<Stock> saveAll(List<Stock> lists) {
         return repository.saveAll(lists);
-    }
-
-    @Override
-    public long count() {
-        return repository.count();
-    }
-
-    @Override
-    public void deleteAll() {
-        repository.deleteAll();
     }
 
     @Override

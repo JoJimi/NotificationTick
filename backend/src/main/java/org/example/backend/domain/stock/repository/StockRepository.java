@@ -5,14 +5,10 @@ import org.example.backend.domain.stock.entity.Stock;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public interface StockRepository {
-    Optional<Stock> findById(Long id);
     Optional<Stock> findBySymbol(String symbol);
-    List<Stock> findAll();
-
     Page<StockResponse> findAllOrderByWatchCountDesc(Pageable pageable);
     Optional<StockResponse> findWithWatchCountBySymbol(String symbol);
 
@@ -22,8 +18,6 @@ public interface StockRepository {
 
     Stock save(Stock stock);
     List<Stock> saveAll(List<Stock> lists);
-    long count();
-    void deleteAll();
     List<String> findAllSymbols();
 
 }

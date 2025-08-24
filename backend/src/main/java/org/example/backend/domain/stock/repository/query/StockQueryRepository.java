@@ -4,8 +4,7 @@ import org.example.backend.domain.stock.dto.response.StockResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public interface StockQueryRepository {
 

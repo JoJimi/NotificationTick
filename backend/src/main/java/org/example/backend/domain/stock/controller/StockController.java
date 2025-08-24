@@ -8,8 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/stock")
 @RequiredArgsConstructor
@@ -17,7 +15,7 @@ public class StockController {
 
     private final StockService stockService;
 
-    /** 기본 목록/검색: GET /api/stock?q= */
+    /** 기본 목록/검색 */
     @GetMapping
     public ResponseEntity<Page<StockResponse>> list(
             @RequestParam(value = "keyword", defaultValue = "") String keyword,
@@ -29,13 +27,13 @@ public class StockController {
         return ResponseEntity.ok(page);
     }
 
-    /** 랭킹(관심수 DESC): GET /api/stock/ranking */
+    /** 랭킹(관심수 DESC) */
     @GetMapping("/ranking")
     public ResponseEntity<Page<StockResponse>> ranking(Pageable pageable) {
         return ResponseEntity.ok(stockService.getStocksRanking(pageable));
     }
 
-    /** 단건 조회: GET /api/stock/{symbol} */
+    /** 단건 조회 */
     @GetMapping("/{symbol}")
     public ResponseEntity<StockResponse> getStock(@PathVariable String symbol) {
         return ResponseEntity.ok(stockService.getStockBySymbol(symbol));
