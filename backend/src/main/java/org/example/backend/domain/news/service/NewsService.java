@@ -19,8 +19,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.*;
 
-import static org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
-
 @Service
 @RequiredArgsConstructor
 public class NewsService {
@@ -28,7 +26,6 @@ public class NewsService {
     private final StockRepository stockRepository;
     private final NewsRepository newsRepository;
 
-    // === 외부 설정 ===
     @Value("${naver.api.client-id}")
     private String naverClientId;
     @Value("${naver.api.client-secret}")
@@ -36,18 +33,17 @@ public class NewsService {
     @Value("${naver.api.clova-key}")
     private String clovaApiKey;
 
-    // === WebClient 분리 ===
-    // 1) 네이버 오픈 API 전용
+    // 네이버 오픈 API 전용
     private final WebClient naverClient = WebClient.builder()
             .baseUrl("https://openapi.naver.com")
             .build();
 
-    // 2) CLOVA Summarization 전용
+    // CLOVA Summarization 전용
     private final WebClient clovaClient = WebClient.builder()
             .baseUrl("https://clovastudio.stream.ntruss.com")
             .build();
 
-    // 3) 기사 HTML 크롤링 전용 (인코딩 비간섭)
+    // 기사 HTML 크롤링 전용 (인코딩 비간섭)
     private final WebClient articleClient = buildArticleClient();
 
     private static WebClient buildArticleClient() {
@@ -72,16 +68,11 @@ public class NewsService {
                     .appendPattern("EEE, dd MMM yyyy HH:mm Z")
                     .toFormatter(Locale.ENGLISH);
 
-    /**
-     * 특정 종목의 최신 뉴스(최대 5개)를 가져와 저장합니다.
-     * @param stock               대상 종목
-     * @param lastPublishedAfter  이 시각 이후 뉴스만 수집(없으면 null)
-     */
+    /** 특정 종목의 최신 뉴스(최대 5개)를 가져와 저장합니다. */
     public List<News> fetchLatestNewsForStock(Stock stock, OffsetDateTime lastPublishedAfter) {
         String query = stock.getName();
         int maxResults = 5;
 
-        // 네이버 뉴스 검색 API 호출 (최신순 정렬)
         String uri = "/v1/search/news.json?query=" + urlEncode(query)
                 + "&display=" + maxResults
                 + "&start=1&sort=date";
@@ -103,33 +94,25 @@ public class NewsService {
             String title = stripTags(item.path("title").asText(""));
             String link = item.hasNonNull("originallink") && !item.get("originallink").asText("").isEmpty()
                     ? item.get("originallink").asText()
-                    : item.path("link").asText(""); // Naver 중계 링크 폴백
+                    : item.path("link").asText("");
             String description = stripTags(item.path("description").asText(""));
             String pubDateStr = item.path("pubDate").asText(null);
-
             OffsetDateTime publishedAt = parsePubDate(pubDateStr);
-            if (publishedAt == null) {
-                // 날짜 파싱 실패 시 건너뜀
-                continue;
-            }
-            if (lastPublishedAfter != null &&
-                    (publishedAt.isBefore(lastPublishedAfter) || publishedAt.isEqual(lastPublishedAfter))) {
-                continue;
-            }
-            if (link.isEmpty() || isNewsLinkAlreadySaved(stock.getId(), link)) {
-                continue;
-            }
 
-            // 1) 기사 본문 크롤링 (재인코딩 방지)
+            if (publishedAt == null) continue;
+            if (lastPublishedAfter != null && (publishedAt.isBefore(lastPublishedAfter) || publishedAt.isEqual(lastPublishedAfter))) continue;
+            if (link.isEmpty() || isNewsLinkAlreadySaved(stock.getId(), link)) continue;
+
+            // 기사 본문 크롤링 (재인코딩 방지)
             String contentText = fetchArticleText(link);
 
-            // 2) 요약 시도 (본문 없거나 실패 시 description으로 폴백)
+            // 요약 시도 (본문 없거나 실패 시 description으로 폴백)
             String summaryText = "";
             if (!contentText.isBlank()) {
                 summaryText = summarize(contentText);
             }
             if (summaryText.isBlank()) {
-                summaryText = description; // 폴백
+                summaryText = description;
             }
 
             String source = extractSourceFromUrl(link);
@@ -137,8 +120,8 @@ public class NewsService {
             News news = News.builder()
                     .stock(stock)
                     .title(title)
-                    .content(link)        // 원문 URL 저장
-                    .summary(summaryText) // 요약 또는 description
+                    .content(link)
+                    .summary(summaryText)
                     .source(source)
                     .publishedAt(publishedAt)
                     .build();
@@ -146,10 +129,9 @@ public class NewsService {
             try {
                 newsRepository.save(news);
                 savedNewsList.add(news);
-            } catch (Exception ignore) {
-                // 중복 등 저장 실패는 무시하고 다음 아이템 처리
-            }
+            } catch (Exception ignore) { }
         }
+
         return savedNewsList;
     }
 
@@ -172,30 +154,32 @@ public class NewsService {
         newsRepository.deleteByStockId(stock.getId());
     }
 
-    // === 내부 유틸 ===
 
     /** 기사 본문 텍스트 fetch (Jsoup 사용 또는 WebClient 대체 가능) */
     private String fetchArticleText(String link) {
-        // --- A안: Jsoup로 직접 GET (간단/안정) ---
         try {
             Document doc = Jsoup.connect(link)
                     .userAgent("Mozilla/5.0")
                     .timeout(8000)
                     .ignoreContentType(true)
                     .get();
-            // 너무 길 경우 요약 API에 부담이 되므로 적당히 제한
+
             String text = doc.text();
             return truncate(text, 8000);
         } catch (Exception e) {
-            // --- B안: WebClient 사용 예시 (재인코딩 방지) ---
             try {
                 String html = articleClient.get()
                         .uri(link) // EncodingMode.NONE으로 재인코딩 안 함
                         .retrieve()
                         .bodyToMono(String.class)
                         .block();
-                if (html == null || html.isEmpty()) return "";
+
+                if (html == null || html.isEmpty()) {
+                    return "";
+                }
+
                 String text = Jsoup.parse(html).text();
+
                 return truncate(text, 8000);
             } catch (Exception ignored) {
                 return "";
@@ -206,7 +190,6 @@ public class NewsService {
     /** CLOVA Summarization 호출 (실패 시 빈 문자열 반환) */
     private String summarize(String contentText) {
         try {
-            // 과도한 길이 방지
             String payloadText = truncate(contentText, 8000);
 
             Map<String, Object> body = Map.of(
@@ -225,8 +208,8 @@ public class NewsService {
             if (res != null && res.has("result") && res.get("result").has("text")) {
                 return res.get("result").get("text").asText("");
             }
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) { }
+
         return "";
     }
 
@@ -242,6 +225,7 @@ public class NewsService {
         try {
             return ZonedDateTime.parse(pubDateStr, RFC1123_EN_ALT2).toOffsetDateTime();
         } catch (Exception ignored) { }
+
         return null;
     }
 
@@ -253,12 +237,14 @@ public class NewsService {
     /** 태그 제거 */
     private String stripTags(String html) {
         if (html == null) return "";
+
         return html.replaceAll("<[^>]*>", "");
     }
 
     /** 링크 중복 여부 */
     private boolean isNewsLinkAlreadySaved(Long stockId, String link) {
         List<News> existingList = newsRepository.findByStockId(stockId);
+
         return existingList.stream().anyMatch(n -> link.equals(n.getContent()));
     }
 
@@ -279,6 +265,7 @@ public class NewsService {
     private String truncate(String s, int max) {
         if (s == null) return "";
         if (s.length() <= max) return s;
+
         return s.substring(0, max);
     }
 }

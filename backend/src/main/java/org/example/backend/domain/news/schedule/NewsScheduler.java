@@ -26,13 +26,13 @@ public class NewsScheduler {
      */
     @Scheduled(cron = "0 0 6,18 * * *")
     public void refreshWatchedStocksNews() {
-        // 관심등록된 모든 종목 목록 조회 (중복 제거)
         List<Stock> watchedStocks = watchListRepository.findDistinctStockAll();
+
         for (Stock stock : watchedStocks) {
-            // 해당 종목의 마지막 뉴스 시간 이후 뉴스만 갱신
             OffsetDateTime lastTime = newsRepository.findLatestByStockId(stock.getId())
                     .map(News::getPublishedAt)
                     .orElse(null);
+
             newsService.fetchLatestNewsForStock(stock, lastTime);
         }
     }
