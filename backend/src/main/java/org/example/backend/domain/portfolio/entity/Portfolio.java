@@ -6,8 +6,7 @@ import org.example.backend.domain.transaction.entity.Transaction;
 import org.example.backend.domain.user.entity.User;
 import org.example.backend.global.entity.BaseEntity;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "portfolio")

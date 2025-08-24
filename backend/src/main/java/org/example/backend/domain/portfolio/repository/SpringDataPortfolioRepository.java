@@ -8,14 +8,10 @@ import java.util.*;
 
 public interface SpringDataPortfolioRepository extends JpaRepository<Portfolio, Long> {
 
-    /**
-     * 사용자별 포트폴리오 조회
-      */
+    /** 사용자별 포트폴리오 조회 */
     List<Portfolio> findAllByUser(User user);
 
-    /**
-     * ID + 소유자 기준 포트폴리오 조회
-     */
+    /** ID + 소유자 기준 포트폴리오 조회 */
     Optional<Portfolio> findByIdAndUser(Long id, User user);
 
 }
