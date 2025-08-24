@@ -42,6 +42,6 @@ public record TransactionsResponse(
                         transaction.getPrice(),                  // 체결 단가
                         transaction.getTotalAmount(),            // 총 매매 가격
                         transaction.getCreatedAt(),              // BaseEntity.createdAt
-                        transaction.getUpdatedAt());               // BaseEntity.updatedAt
+                        transaction.getUpdatedAt());             // BaseEntity.updatedAt
         }
 }
