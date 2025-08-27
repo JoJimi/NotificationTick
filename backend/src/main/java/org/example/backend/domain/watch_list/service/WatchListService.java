@@ -2,6 +2,7 @@ package org.example.backend.domain.watch_list.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.backend.domain.news.service.NewsService;
+import org.example.backend.domain.notification.kafka.NotificationProducer;
 import org.example.backend.domain.stock.entity.Stock;
 import org.example.backend.domain.stock.repository.StockRepository;
 import org.example.backend.domain.user.entity.User;
@@ -20,6 +21,7 @@ public class WatchListService {
     private final WatchListRepository watchListRepository;
     private final StockRepository stockRepository;
     private final NewsService newsService;
+    private final NotificationProducer producer;
 
     /** 관심 등록 (idempotent) */
     @Transactional
@@ -38,6 +40,7 @@ public class WatchListService {
             } catch (DataIntegrityViolationException e) { /* 중복 추가 예외 무시 */ }
 
             newsService.addWatchAndFetchNews(userId, symbol);
+            producer.sendInterestAdded(userId, stock);
         }
         long count = watchListRepository.countByStockId(stockId);
         return new WatchListResponse(symbol, true, count);
@@ -80,6 +83,7 @@ public class WatchListService {
             } catch (DataIntegrityViolationException e) { /* 중복 예외 무시 */ }
 
             newsService.addWatchAndFetchNews(userId, symbol);
+            producer.sendInterestAdded(userId, stock);
         }
         long count = watchListRepository.countByStockId(stockId);
         return new WatchListResponse(symbol, !exists, count);

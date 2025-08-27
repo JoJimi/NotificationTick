@@ -18,4 +18,6 @@ public interface SpringDataWatchListRepository extends JpaRepository<WatchList, 
 
     @Query("select distinct w.stock from WatchList w")
     List<Stock> findDistinctStockAll();
+
+    List<WatchList> findByStockId(Long stockId);
 }

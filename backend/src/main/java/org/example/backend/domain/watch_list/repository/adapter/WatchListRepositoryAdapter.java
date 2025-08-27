@@ -38,4 +38,9 @@ public class WatchListRepositoryAdapter implements WatchListRepository {
     public List<Stock> findDistinctStockAll() {
         return repository.findDistinctStockAll();
     }
+
+    @Override
+    public List<WatchList> findByStockId(Long stockId) {
+        return repository.findByStockId(stockId);
+    }
 }

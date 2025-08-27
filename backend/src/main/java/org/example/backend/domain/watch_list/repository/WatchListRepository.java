@@ -15,4 +15,6 @@ public interface WatchListRepository {
     WatchList save(WatchList watchList);
 
     List<Stock> findDistinctStockAll();
+
+    List<WatchList> findByStockId(Long stockId);
 }
