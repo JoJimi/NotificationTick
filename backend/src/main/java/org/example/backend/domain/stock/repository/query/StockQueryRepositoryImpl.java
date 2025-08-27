@@ -11,8 +11,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -25,7 +24,6 @@ public class StockQueryRepositoryImpl implements StockQueryRepository {
 
     @Override
     public Page<StockResponse> findAllOrderByWatchCountDesc(Pageable pageable) {
-        // content
         List<StockResponse> content = qf.select(Projections.constructor(
                         StockResponse.class,
                         s.id, s.symbol, s.name, s.market, s.isin,
@@ -39,7 +37,6 @@ public class StockQueryRepositoryImpl implements StockQueryRepository {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        // total (집계가 아니라 Stock 전체 카운트면 충분)
         Long total = qf.select(s.count()).from(s).fetchOne();
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
     }
@@ -85,7 +82,6 @@ public class StockQueryRepositoryImpl implements StockQueryRepository {
     public Page<StockResponse> searchWithWatchCountByKeyword(String keyword, Pageable pageable) {
         String k = keyword == null ? "" : keyword.trim();
 
-        // content
         List<StockResponse> content = qf.select(Projections.constructor(
                         StockResponse.class,
                         s.id, s.symbol, s.name, s.market, s.isin,
@@ -101,7 +97,6 @@ public class StockQueryRepositoryImpl implements StockQueryRepository {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        // total
         Long total = qf.select(s.count())
                 .from(s)
                 .where(k.isEmpty() ? null :
@@ -114,22 +109,20 @@ public class StockQueryRepositoryImpl implements StockQueryRepository {
     // 내가 누른 관심종목 리스트 반환
     @Override
     public Page<StockResponse> findWatchingStocksByUserId(Long userId, Pageable pageable) {
-        // content
         List<StockResponse> content = qf.select(Projections.constructor(
                         StockResponse.class,
                         s.id, s.symbol, s.name, s.market, s.isin,
-                        w.user.id.count() // 전체 관심수
+                        w.user.id.count()
                 ))
                 .from(s)
-                .join(s.watchList, wUser).on(wUser.user.id.eq(userId)) // 내가 누른 것만
-                .leftJoin(s.watchList, w) // 전체 관심수 집계용
+                .join(s.watchList, wUser).on(wUser.user.id.eq(userId))
+                .leftJoin(s.watchList, w)
                 .groupBy(s.id, s.symbol, s.name, s.market, s.isin)
-                .orderBy(wUser.createdAt.max().desc()) // ✅ groupBy에 createdAt 안 넣고 max로 정렬
+                .orderBy(wUser.createdAt.max().desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        // total: 내 관심 종목 개수
         Long total = qf.select(wUser.count())
                 .from(wUser)
                 .where(wUser.user.id.eq(userId))

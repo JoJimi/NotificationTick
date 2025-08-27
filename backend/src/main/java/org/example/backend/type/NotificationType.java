@@ -7,7 +7,8 @@ import java.util.*;
 public enum NotificationType {  // 알림 유형
     PRICE_DROP("급락 알림"),
     NEWS_EVENT("뉴스 발생 알림"),
-    THRESHOLD("수익률/목표가 임계치 초과 알림");
+    THRESHOLD("수익률/목표가 임계치 초과 알림"),
+    INTEREST_ADDED("관심종목 등록");
 
     private final String description;
 

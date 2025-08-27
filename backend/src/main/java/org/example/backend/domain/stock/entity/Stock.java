@@ -8,8 +8,7 @@ import org.example.backend.domain.transaction.entity.Transaction;
 import org.example.backend.domain.watch_list.entity.WatchList;
 import org.example.backend.global.entity.BaseEntity;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "stock",

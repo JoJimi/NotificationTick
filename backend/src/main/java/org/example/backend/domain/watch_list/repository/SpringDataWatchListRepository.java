@@ -6,7 +6,7 @@ import org.example.backend.domain.watch_list.entity.WatchListId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.List;
+import java.util.*;
 
 public interface SpringDataWatchListRepository extends JpaRepository<WatchList, WatchListId> {
 
@@ -16,10 +16,8 @@ public interface SpringDataWatchListRepository extends JpaRepository<WatchList, 
 
     long countByStockId(Long stockId);
 
-    List<WatchList> findByUserId(Long userId);
-
-    List<WatchList> findByUserIdOrderByCreatedAtDesc(Long userId);
-
     @Query("select distinct w.stock from WatchList w")
     List<Stock> findDistinctStockAll();
+
+    List<WatchList> findByStockId(Long stockId);
 }

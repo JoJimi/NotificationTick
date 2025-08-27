@@ -12,13 +12,9 @@ public interface WatchListRepository {
 
     long countByStockId(Long stockId);
 
-    List<WatchList> findByUserId(Long userId);
-
-    List<WatchList> findByUserIdOrderByCreatedAtDesc(Long userId);
-
     WatchList save(WatchList watchList);
 
     List<Stock> findDistinctStockAll();
 
-    List<WatchList> findAll();
+    List<WatchList> findByStockId(Long stockId);
 }

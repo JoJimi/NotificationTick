@@ -2,6 +2,7 @@ package org.example.backend.domain.watch_list.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.backend.domain.news.service.NewsService;
+import org.example.backend.domain.notification.kafka.NotificationProducer;
 import org.example.backend.domain.stock.entity.Stock;
 import org.example.backend.domain.stock.repository.StockRepository;
 import org.example.backend.domain.user.entity.User;
@@ -20,6 +21,7 @@ public class WatchListService {
     private final WatchListRepository watchListRepository;
     private final StockRepository stockRepository;
     private final NewsService newsService;
+    private final NotificationProducer producer;
 
     /** 관심 등록 (idempotent) */
     @Transactional
@@ -36,8 +38,9 @@ public class WatchListService {
                         .build();
                 watchListRepository.save(watchList);
             } catch (DataIntegrityViolationException e) { /* 중복 추가 예외 무시 */ }
-            // ★ 신규 관심종목 뉴스 수집
+
             newsService.addWatchAndFetchNews(userId, symbol);
+            producer.sendInterestAdded(userId, stock);
         }
         long count = watchListRepository.countByStockId(stockId);
         return new WatchListResponse(symbol, true, count);
@@ -52,7 +55,7 @@ public class WatchListService {
 
         if (watchListRepository.existsByUserIdAndStockId(userId, stockId)) {
             watchListRepository.deleteByUserIdAndStockId(userId, stockId);
-            // ★ 관심종목 해제 시 뉴스 삭제
+
             newsService.removeWatchAndDeleteNews(userId, symbol);
         }
         long count = watchListRepository.countByStockId(stockId);
@@ -68,12 +71,9 @@ public class WatchListService {
         boolean exists = watchListRepository.existsByUserIdAndStockId(userId, stockId);
 
         if (exists) {
-            // 관심 -> 해제
             watchListRepository.deleteByUserIdAndStockId(userId, stockId);
-            // ★ 뉴스 삭제
             newsService.removeWatchAndDeleteNews(userId, symbol);
         } else {
-            // 미관심 -> 관심 등록
             try {
                 WatchList watchList = WatchList.builder()
                         .user(User.builder().id(userId).build())
@@ -81,8 +81,9 @@ public class WatchListService {
                         .build();
                 watchListRepository.save(watchList);
             } catch (DataIntegrityViolationException e) { /* 중복 예외 무시 */ }
-            // ★ 뉴스 수집 (최신 5건)
+
             newsService.addWatchAndFetchNews(userId, symbol);
+            producer.sendInterestAdded(userId, stock);
         }
         long count = watchListRepository.countByStockId(stockId);
         return new WatchListResponse(symbol, !exists, count);

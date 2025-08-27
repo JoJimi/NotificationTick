@@ -21,11 +21,6 @@ public class UserRepositoryAdapter implements UserRepository {
     }
 
     @Override
-    public Optional<User> findByEmail(String email) {
-        return springDataUserRepository.findByEmail(email);
-    }
-
-    @Override
     public Optional<User> findByLoginTypeAndProviderId(LoginType loginType, String providerId) {
         return springDataUserRepository.findByLoginTypeAndProviderId(loginType, providerId);
     }

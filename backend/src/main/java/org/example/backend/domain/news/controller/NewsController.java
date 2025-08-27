@@ -25,12 +25,12 @@ public class NewsController {
     public ResponseEntity<List<NewsResponse>> getNewsBySymbol(@PathVariable String symbol) {
         Stock stock = stockRepository.findBySymbol(symbol)
                 .orElseThrow(() -> new RuntimeException("종목을 찾을 수 없습니다."));
-        // 해당 종목의 모든 뉴스 최신순으로 조회
+
         List<News> newsList = newsRepository.findByStockId(stock.getId());
-        // 엔티티를 DTO로 변환하여 반환
         List<NewsResponse> responseList = newsList.stream()
                 .map(NewsResponse::fromEntity)
                 .collect(Collectors.toList());
+
         return ResponseEntity.ok(responseList);
     }
 }
