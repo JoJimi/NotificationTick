@@ -29,8 +29,10 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-batch")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
-	testImplementation("org.springframework.batch:spring-batch-test")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
+
+	// kafka
+	implementation("org.springframework.kafka:spring-kafka")
 
 	// actuator + prometheus
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -71,6 +73,8 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	testImplementation("org.springframework.kafka:spring-kafka-test")
+	testImplementation("org.springframework.batch:spring-batch-test")
 }
 
 tasks.withType<Test> {
