@@ -3,6 +3,7 @@ package org.example.backend.domain.news.service;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.domain.news.entity.News;
 import org.example.backend.domain.news.repository.NewsRepository;
+import org.example.backend.domain.notification.kafka.NotificationProducer;
 import org.example.backend.domain.stock.entity.Stock;
 import org.example.backend.domain.stock.repository.StockRepository;
 import org.jsoup.Jsoup;
@@ -25,6 +26,7 @@ public class NewsService {
 
     private final StockRepository stockRepository;
     private final NewsRepository newsRepository;
+    private final NotificationProducer producer;
 
     @Value("${naver.api.client-id}")
     private String naverClientId;
@@ -129,6 +131,8 @@ public class NewsService {
             try {
                 newsRepository.save(news);
                 savedNewsList.add(news);
+
+                producer.sendNewsEvent(stock, title);
             } catch (Exception ignore) { }
         }
 
