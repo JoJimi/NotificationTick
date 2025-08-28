@@ -7,6 +7,9 @@ const routes = [
     { path: '/login', component: () => import('@/views/Login.vue') },
     { path: '/oauth2/callback', component: () => import('@/views/OAuthCallback.vue') },
     { path: '/profile', component: () => import('@/views/Profile.vue'), meta: { requiresAuth: true } },
+    { path: '/stocks', component: () => import('@/views/stock/StockList.vue') },
+    { path: '/stocks/ranking', component: () => import('@/views/stock/StockRanking.vue') },
+    { path: '/stocks/:symbol', component: () => import('@/views/stock/StockDetail.vue'), props: true },
     { path: '/:pathMatch(.*)*', redirect: '/login' },
 ];
 

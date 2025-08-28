@@ -5,6 +5,8 @@
     <nav class="nav">
       <RouterLink to="/login">로그인</RouterLink>
       <RouterLink to="/profile">내 프로필</RouterLink>
+      <RouterLink to="/stocks">종목</RouterLink>
+      <RouterLink to="/stocks/ranking">랭킹</RouterLink>
     </nav>
   </header>
   <main class="main">
