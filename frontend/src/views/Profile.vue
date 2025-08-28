@@ -18,8 +18,11 @@
     <div v-else>불러오는 중...</div>
   </el-card>
 
-  <!-- 내 관심종목 섹션 -->
+  <!-- 관심종목 섹션(선택) -->
   <MyWatchList />
+
+  <!-- 포트폴리오 섹션 -->
+  <PortfolioSection />
 </template>
 
 <script setup>
@@ -27,6 +30,7 @@ import { onMounted, ref, computed } from 'vue';
 import { useUserStore } from '@/store/userStore';
 import { ElMessage } from 'element-plus';
 import MyWatchList from '@/views/stock/MyWatchList.vue';
+import PortfolioSection from '@/views/portfolio/PortfolioSection.vue';
 
 const store = useUserStore();
 const user = computed(() => store.user);
