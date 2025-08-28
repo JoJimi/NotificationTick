@@ -1,16 +1,26 @@
 // src/router/index.js
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView    from '@/views/HomeView.vue'
-import ProfileView from '@/views/ProfileView.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import { useUserStore } from '@/store/userStore';
 
 const routes = [
-    { path: '/',        component: HomeView },
-    { path: '/profile', component: ProfileView },
-]
+    { path: '/', component: () => import('@/views/Home.vue'), meta: { requiresAuth: true } },
+    { path: '/login', component: () => import('@/views/Login.vue') },
+    { path: '/oauth2/callback', component: () => import('@/views/OAuthCallback.vue') },
+    { path: '/profile', component: () => import('@/views/Profile.vue'), meta: { requiresAuth: true } },
+    { path: '/:pathMatch(.*)*', redirect: '/login' },
+];
 
 const router = createRouter({
     history: createWebHistory(),
-    routes
-})
+    routes,
+});
 
-export default router
+// 간단한 보호 라우트 가드
+router.beforeEach((to) => {
+    const store = useUserStore();
+    if (to.meta.requiresAuth && !store.accessToken) {
+        return '/login';
+    }
+});
+
+export default router;

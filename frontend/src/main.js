@@ -1,9 +1,11 @@
 // src/main.js
-import { createApp } from 'vue'
-import App        from '@/App.vue'
-import router     from '@/router'
-import apiClient  from '@/api.js'  // axios 인터셉터 설정
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
+import router from './router';
+import App from './App.vue';
 
-createApp(App)
-    .use(router)
-    .mount('#app')
+// UI 프레임워크 (Element Plus)
+import ElementPlus from 'element-plus';
+import 'element-plus/dist/index.css';
+
+createApp(App).use(createPinia()).use(router).use(ElementPlus).mount('#app');
