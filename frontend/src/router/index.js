@@ -11,6 +11,7 @@ const routes = [
     { path: '/stocks', component: () => import('@/views/stock/StockList.vue') },
     { path: '/stocks/ranking', component: () => import('@/views/stock/StockRanking.vue') },
     { path: '/stocks/:symbol', component: () => import('@/views/stock/StockDetail.vue'), props: true },
+    { path: '/notifications', component: () => import('@/views/notification/Notifications.vue'), meta: { requiresAuth: true } },
     { path: '/:pathMatch(.*)*', redirect: '/login' },
 ];
 
