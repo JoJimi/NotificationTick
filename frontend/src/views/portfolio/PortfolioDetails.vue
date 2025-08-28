@@ -23,25 +23,13 @@
           <el-descriptions-item label="수정">{{ fmt(portfolio.updatedAt) }}</el-descriptions-item>
         </el-descriptions>
 
-        <h3 class="sub">거래 내역</h3>
-        <el-table :data="txRows" empty-text="거래 내역이 없습니다." style="width:100%">
-          <el-table-column prop="_symbol" label="심볼" width="120" />
-          <el-table-column prop="_name" label="종목명" min-width="160" />
-          <el-table-column prop="_type" label="유형" width="100" />
-          <el-table-column prop="_qty" label="수량" width="100" />
-          <el-table-column prop="_price" label="가격" width="120" />
-          <el-table-column prop="_time" label="체결시각" width="170" />
-          <el-table-column label="원본" min-width="220">
-            <template #default="{ row }">
-              <span class="json">{{ stringify(row._raw) }}</span>
-            </template>
-          </el-table-column>
-        </el-table>
+        <!-- ✅ 거래 관리 컴포넌트 삽입 -->
+        <TransactionTable :portfolio-id="portfolio.id" />
       </template>
       <div v-else>데이터가 없습니다.</div>
     </template>
 
-    <!-- 빠른 수정 다이얼로그 -->
+    <!-- 빠른 수정 다이얼로그 (기존 그대로) -->
     <el-dialog v-model="dialog" title="포트폴리오 수정" width="520">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="88px" @submit.prevent>
         <el-form-item label="이름" prop="name">
@@ -60,11 +48,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import dayjs from 'dayjs';
 import { fetchPortfolioDetails, updatePortfolio, deletePortfolio } from '@/api/portfolio';
+import TransactionTable from '@/views/transaction/TransactionTable.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -73,27 +62,6 @@ const loading = ref(false);
 const portfolio = ref(null);
 
 function fmt(t){ return t ? dayjs(t).format('YYYY-MM-DD HH:mm') : '-'; }
-function stringify(obj){ try { return JSON.stringify(obj, null, 0); } catch { return ''; } }
-
-// 거래 필드 유연 매핑
-function mapTx(tx) {
-  const sym = tx.symbol || tx.stockSymbol || tx.ticker || tx.stock?.symbol || '-';
-  const name = tx.stockName || tx.name || tx.stock?.name || '-';
-  const type = tx.type || tx.side || '-';
-  const qty = tx.quantity ?? tx.qty ?? '-';
-  const price = tx.price ?? tx.fillPrice ?? tx.executedPrice ?? '-';
-  const time = tx.executedAt || tx.transactedAt || tx.createdAt || null;
-  return {
-    _symbol: String(sym ?? '-'),
-    _name: String(name ?? '-'),
-    _type: String(type ?? '-'),
-    _qty: qty,
-    _price: price,
-    _time: time ? dayjs(time).format('YYYY-MM-DD HH:mm') : '-',
-    _raw: tx,
-  };
-}
-const txRows = computed(() => (portfolio.value?.transaction || []).map(mapTx));
 
 async function load(id) {
   if (!id) return;
@@ -110,7 +78,7 @@ async function load(id) {
 onMounted(() => load(route.params.portfolioId));
 watch(() => route.params.portfolioId, (id) => load(id));
 
-// 빠른 수정
+// 빠른 수정/삭제 (이전 답변과 동일)
 const dialog = ref(false);
 const formRef = ref();
 const form = ref({ name: '', description: '' });
@@ -138,7 +106,6 @@ async function save() {
   }
 }
 
-// 삭제
 async function remove() {
   if (!portfolio.value) return;
   try {
@@ -148,7 +115,6 @@ async function remove() {
       type: 'warning',
     });
   } catch { return; }
-
   try {
     await deletePortfolio(portfolio.value.id);
     ElMessage.success('삭제되었습니다.');
@@ -162,6 +128,4 @@ async function remove() {
 <style scoped>
 .header-row{display:flex;justify-content:space-between;align-items:center}
 .actions{display:flex;gap:8px;align-items:center}
-.sub{margin:18px 0 10px 0}
-.json{font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px; color:#666}
 </style>
