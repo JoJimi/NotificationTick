@@ -1,4 +1,4 @@
-<!-- src/views/NewsBySymbol.vue -->
+<!-- src/views/news/NewsBySymbol.vue -->
 <template>
   <el-card>
     <template #header>

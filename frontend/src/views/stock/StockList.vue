@@ -1,4 +1,4 @@
-<!-- src/views/StockList.vue -->
+<!-- src/views/stock/StockList.vue -->
 <template>
   <el-card>
     <template #header>

@@ -1,12 +1,18 @@
-<!-- src/views/StockDetail.vue -->
+<!-- src/views/stock/StockDetail.vue -->
 <template>
   <el-card>
     <template #header>
       <div class="header-row">
         <span>종목 상세</span>
-        <el-button @click="$router.back()">뒤로</el-button>
         <div class="btns">
           <el-button @click="$router.back()">뒤로</el-button>
+          <el-button
+              :type="watching ? 'success' : 'info'"
+              :disabled="!stock"
+              @click="onToggle"
+          >
+            {{ watching ? '관심 해제' : '관심 등록' }} ({{ count }})
+          </el-button>
           <el-button type="primary" :disabled="!stock" @click="$router.push(`/news/${stock.symbol}`)">관련 뉴스</el-button>
         </div>
       </div>
@@ -32,10 +38,14 @@ import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { fetchStockBySymbol } from '@/api/stock';
+import { getWatchState, toggleWatch } from '@/api/watchlist';
 
 const route = useRoute();
 const loading = ref(false);
 const stock = ref(null);
+
+const watching = ref(false);
+const count = ref(0);
 
 async function load(symbol) {
   if (!symbol) return;
@@ -46,6 +56,31 @@ async function load(symbol) {
     ElMessage.error('상세 정보를 불러오지 못했습니다.');
   } finally {
     loading.value = false;
+  }
+  await loadWatch(symbol);
+}
+
+async function loadWatch(symbol) {
+  try {
+    const res = await getWatchState(symbol);
+    watching.value = !!res.watching;
+    count.value = Number(res.watchCount || 0);
+    if (stock.value) stock.value.watchCount = count.value; // 화면 동기화
+  } catch (_) {
+    // 비로그인/권한 문제 등은 토글 시 에러 메시지로 처리
+  }
+}
+
+async function onToggle() {
+  if (!stock.value) return;
+  try {
+    const res = await toggleWatch(stock.value.symbol);
+    watching.value = !!res.watching;
+    count.value = Number(res.watchCount || 0);
+    if (stock.value) stock.value.watchCount = count.value;
+    ElMessage.success(watching.value ? '관심 등록되었습니다.' : '관심 해제되었습니다.');
+  } catch (e) {
+    ElMessage.error('처리에 실패했습니다.');
   }
 }
 

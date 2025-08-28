@@ -17,12 +17,16 @@
     </div>
     <div v-else>불러오는 중...</div>
   </el-card>
+
+  <!-- 내 관심종목 섹션 -->
+  <MyWatchList />
 </template>
 
 <script setup>
 import { onMounted, ref, computed } from 'vue';
 import { useUserStore } from '@/store/userStore';
 import { ElMessage } from 'element-plus';
+import MyWatchList from '@/views/stock/MyWatchList.vue';
 
 const store = useUserStore();
 const user = computed(() => store.user);

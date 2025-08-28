@@ -1,23 +1,28 @@
-<!-- src/views/stock/StockRanking.vue -->
+<!-- src/views/stock/MyWatchList.vue -->
 <template>
-  <el-card>
-    <template #header>종목 랭킹 (관심수 DESC)</template>
+  <el-card class="mt16">
+    <template #header>
+      <div class="header-row">
+        <span>내 관심종목</span>
+      </div>
+    </template>
 
     <el-table
         :data="rows"
         v-loading="loading"
-        empty-text="데이터가 없습니다."
+        empty-text="관심종목이 없습니다."
         @row-click="goDetail"
         style="width: 100%"
+        header-cell-class-name="table-header"
     >
-      <el-table-column type="index" label="#" width="70" />
       <el-table-column prop="symbol" label="심볼" width="120" />
-      <el-table-column prop="name" label="종목명" min-width="200" />
+      <el-table-column prop="name" label="종목명" min-width="220" />
       <el-table-column prop="market" label="시장" width="120" />
       <el-table-column prop="watchCount" label="관심수" width="120" />
-      <el-table-column label="" width="120">
+      <el-table-column label="" width="160">
         <template #default="{ row }">
           <el-button size="small" @click.stop="goDetail(row)">상세</el-button>
+          <el-button size="small" text type="danger" @click.stop="unwatch(row)">해제</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -41,22 +46,16 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { fetchStockRanking } from '@/api/stock';
+import { fetchMyWatchList, removeWatch } from '@/api/watchlist';
 
 const route = useRoute();
 const router = useRouter();
 
-const loading = ref(false);
-const page = ref(Number(route.query.page || 1));
-const size = ref(Number(route.query.size || 20));
+const page = ref(Number(route.query.wpage || 1));
+const size = ref(Number(route.query.wsize || 20));
 
-const pageData = ref({
-  content: [],
-  number: 0,
-  size: 20,
-  totalElements: 0,
-  totalPages: 0,
-});
+const loading = ref(false);
+const pageData = ref({ content: [], number: 0, size: 20, totalElements: 0, totalPages: 0 });
 
 const rows = computed(() => pageData.value.content || []);
 const totalElements = computed(() => pageData.value.totalElements || 0);
@@ -64,10 +63,10 @@ const totalElements = computed(() => pageData.value.totalElements || 0);
 async function load() {
   loading.value = true;
   try {
-    const data = await fetchStockRanking({ page: page.value, size: size.value });
+    const data = await fetchMyWatchList({ page: page.value, size: size.value });
     pageData.value = data;
   } catch (e) {
-    ElMessage.error('랭킹을 불러오지 못했습니다.');
+    ElMessage.error('관심종목을 불러오지 못했습니다.');
   } finally {
     loading.value = false;
   }
@@ -75,16 +74,24 @@ async function load() {
 
 function syncQuery() {
   router.replace({
-    path: '/stocks/ranking',
-    query: { page: String(page.value), size: String(size.value) },
+    path: '/profile',
+    query: { ...route.query, wpage: String(page.value), wsize: String(size.value) },
   });
 }
 
 function onPageChange(p) { page.value = p; syncQuery(); }
 function onSizeChange(s) { size.value = s; page.value = 1; syncQuery(); }
 
-function goDetail(row) {
-  router.push(`/stocks/${encodeURIComponent(row.symbol)}`);
+function goDetail(row) { router.push(`/stocks/${encodeURIComponent(row.symbol)}`); }
+
+async function unwatch(row) {
+  try {
+    await removeWatch(row.symbol);
+    ElMessage.success('관심 해제되었습니다.');
+    load();
+  } catch (e) {
+    ElMessage.error('해제에 실패했습니다.');
+  }
 }
 
 watch(() => route.query, () => load());
@@ -92,5 +99,8 @@ onMounted(load);
 </script>
 
 <style scoped>
-.pager{display:flex;justify-content:flex-end;margin-top:12px}
+.mt16{ margin-top:16px }
+.header-row{ display:flex; justify-content:space-between; align-items:center }
+.pager{ display:flex; justify-content:flex-end; margin-top:12px }
+.table-header{ font-weight:700 }
 </style>
