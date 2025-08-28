@@ -5,6 +5,10 @@
       <div class="header-row">
         <span>종목 상세</span>
         <el-button @click="$router.back()">뒤로</el-button>
+        <div class="btns">
+          <el-button @click="$router.back()">뒤로</el-button>
+          <el-button type="primary" :disabled="!stock" @click="$router.push(`/news/${stock.symbol}`)">관련 뉴스</el-button>
+        </div>
       </div>
     </template>
 
@@ -51,4 +55,5 @@ watch(() => route.params.symbol, (s) => load(s));
 
 <style scoped>
 .header-row{display:flex;justify-content:space-between;align-items:center}
+.btns{display:flex;gap:8px;align-items:center}
 </style>
