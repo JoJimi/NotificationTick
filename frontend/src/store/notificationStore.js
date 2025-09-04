@@ -4,9 +4,11 @@ import { ref, computed, watch } from 'vue';
 import dayjs from 'dayjs';
 import { fetchNotifications, markNotificationRead, markAllNotificationsRead } from '@/api/notifications';
 import { useUserStore } from '@/store/userStore';
+import { useNotificationPrefsStore } from '@/store/notificationPrefsStore';
 
 export const useNotificationStore = defineStore('notification', () => {
     const userStore = useUserStore();
+    const prefs = useNotificationPrefsStore();
 
     // --- 상태 ---
     const items = ref([]);           // 알림 목록 (최신 우선)
@@ -23,6 +25,10 @@ export const useNotificationStore = defineStore('notification', () => {
     const MAX_RETRY_MS = 30000;
     const MAX_ITEMS = 500;           // 메모리 보호: 최대 보관 수
     let listenersAttached = false;   // 전역 리스너 중복 방지
+
+    // 설정 반영 일시정지 상태
+    const pausedNow = computed(() => prefs.pausedNow.value);
+    function shouldPause() { return pausedNow.value; }
 
     // --- 유틸 ---
     function keyOf(n) { return String(n.id); }
@@ -107,6 +113,7 @@ export const useNotificationStore = defineStore('notification', () => {
     async function connect() {
         if (connected.value || connecting.value) return;
         if (!userStore.accessToken) return;
+        if (shouldPause()) return; // 현재는 조용히 지낼 시간!
 
         connecting.value = true;
         abortController = new AbortController();
@@ -190,7 +197,7 @@ export const useNotificationStore = defineStore('notification', () => {
             clearTimeout(reconnectTimer);
             const jitter = Math.floor(Math.random() * 1000); // 0~1s
             reconnectTimer = setTimeout(() => {
-                if (userStore.accessToken) {
+                if (userStore.accessToken && !shouldPause()) {
                     connecting.value = true;
                     doConnect(true);
                     retryMs = Math.min(retryMs * 2, MAX_RETRY_MS);
@@ -225,16 +232,23 @@ export const useNotificationStore = defineStore('notification', () => {
     // 가시성/네트워크 이벤트 핸들러
     function handleVisibility() {
         if (document.visibilityState === 'hidden') disconnect();
-        else connect();
+        else maybeToggle();
     }
-    function handleOnline() { connect(); }
+    function handleOnline() { maybeToggle(); }
     function handleOffline() { disconnect(); }
+
+    // 설정/토큰 변화에 따라 연결 상태를 자동 조정
+    function maybeToggle() {
+        if (!userStore.accessToken) { disconnect(); return; }
+        if (shouldPause()) { disconnect(); }
+        else { connect(); }
+    }
 
     // 토큰 변화를 감지하여 자동 연결/해제 + 로그아웃 시 클리어
     watch(
         () => userStore.accessToken,
         (at, prev) => {
-            if (at) connect();
+            if (at) maybeToggle();
             else {
                 disconnect();
                 if (prev) {
@@ -247,12 +261,16 @@ export const useNotificationStore = defineStore('notification', () => {
         { immediate: true }
     );
 
+    // 야간 금지 / 휴가 모드 상태가 바뀌면 즉시 반영
+    watch(prefs.pausedNow, () => { maybeToggle(); }, { immediate: true });
+
     return {
         // state
         items,
         unreadCount,
         connected,
         connecting,
+        pausedNow,
         // actions
         loadPage,
         readOne,

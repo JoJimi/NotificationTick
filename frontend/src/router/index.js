@@ -13,6 +13,7 @@ const routes = [
     { path: '/stocks/:symbol', component: () => import('@/views/stock/StockDetail.vue'), props: true },
     { path: '/notifications', component: () => import('@/views/notification/Notifications.vue'), meta: { requiresAuth: true } },
     { path: '/portfolios/:portfolioId', component: () => import('@/views/portfolio/PortfolioDetails.vue'), meta: { requiresAuth: true }, props: true },
+    { path: '/settings/notifications', component: () => import('@/views/notification/NotificationSettings.vue'), meta: { requiresAuth: true } },
     { path: '/:pathMatch(.*)*', redirect: '/login' },
 ];
 
