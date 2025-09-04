@@ -2,8 +2,6 @@ package org.example.backend.domain.notification.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.backend.domain.notification.dto.response.NotificationResponse;
-import org.example.backend.domain.notification.entity.Notification;
-import org.example.backend.domain.notification.repository.adapter.NotificationRepositoryAdapter;
 import org.example.backend.domain.notification.service.NotificationService;
 import org.example.backend.global.jwt.custom.CustomUserDetails;
 import org.springframework.data.domain.*;

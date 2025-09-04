@@ -17,4 +17,13 @@ public interface SpringDataStockRepository
 
     List<Stock> findBySymbolIn(Collection<String> symbols);
 
+    @Query("select s from Stock s where abs(s.changeRate) >= :threshold")
+    List<Stock> findByAbsChangeRateGte(double threshold);
+
+    @Query("select s from Stock s where s.changeRate >= :threshold")
+    List<Stock> findByChangeRateGte(double threshold);
+
+    @Query("select s from Stock s where s.changeRate <= :threshold")
+    List<Stock> findByChangeRateLte(double threshold);
+
 }

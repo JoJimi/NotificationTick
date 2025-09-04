@@ -81,4 +81,19 @@ public class StockRepositoryAdapter implements StockRepository {
     public List<Stock> findBySymbols(Collection<String> symbols) {
         return repository.findBySymbolIn(symbols);
     }
+
+    @Override
+    public List<Stock> findByAbsChangeRateGte(double threshold) {
+        return repository.findByAbsChangeRateGte(threshold);
+    }
+
+    @Override
+    public List<Stock> findByChangeRateGte(double threshold) {
+        return repository.findByChangeRateGte(threshold);
+    }
+
+    @Override
+    public List<Stock> findByChangeRateLte(double threshold) {
+        return repository.findByChangeRateLte(threshold);
+    }
 }
