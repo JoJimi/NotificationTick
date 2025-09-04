@@ -14,10 +14,13 @@ export async function fetchNotifications({ page = 1, size = 10 } = {}) {
 
 /** 단건 읽음 처리 */
 export async function markNotificationRead(notificationId) {
-    await api.put(`/api/notifications/${notificationId}/read`);
+    const { data } = await api.put(`/api/notifications/${notificationId}/read`);
+    return data; // 서버가 최신 상태를 내려주면 활용 가능
 }
 
 /** 전체 읽음 처리 */
 export async function markAllNotificationsRead() {
-    await api.put('/api/notifications/read-all');
+    const { data } = await api.put('/api/notifications/read-all');
+    return data;
 }
+

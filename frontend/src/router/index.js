@@ -21,11 +21,11 @@ const router = createRouter({
     routes,
 });
 
-// 간단한 보호 라우트 가드
+// 보호 라우트 가드 (로그인 후 원래 페이지로 복귀 가능)
 router.beforeEach((to) => {
     const store = useUserStore();
     if (to.meta.requiresAuth && !store.accessToken) {
-        return '/login';
+        return { path: '/login', query: { redirect: to.fullPath } };
     }
 });
 

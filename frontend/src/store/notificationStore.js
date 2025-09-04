@@ -8,9 +8,9 @@ import { useUserStore } from '@/store/userStore';
 export const useNotificationStore = defineStore('notification', () => {
     const userStore = useUserStore();
 
-    // 상태
+    // --- 상태 ---
     const items = ref([]);           // 알림 목록 (최신 우선)
-    const ids = new Set();           // 중복 방지용 ID Set
+    const ids = new Set();           // 중복 방지용 ID Set (string key)
     const unreadCount = computed(() => items.value.filter(n => !n.isRead).length);
 
     // SSE 연결 관리
@@ -19,29 +19,48 @@ export const useNotificationStore = defineStore('notification', () => {
     const lastEventId = ref(null);
     let abortController = null;
     let reconnectTimer = null;
-    let retryMs = 3000;              // 기본 재연결 간격(서버가 retry 제공 안하면 이 값 사용)
+    let retryMs = 3000;              // 기본 재연결 간격
     const MAX_RETRY_MS = 30000;
+    const MAX_ITEMS = 500;           // 메모리 보호: 최대 보관 수
+    let listenersAttached = false;   // 전역 리스너 중복 방지
 
-    // 유틸: 목록에 안전하게 삽입
-    function upsertNotification(n) {
-        if (!n || !n.id) return;
-        if (ids.has(n.id)) {
-            // 부분 업데이트: 읽음 상태/메시지 등 동기화
-            const idx = items.value.findIndex(x => x.id === n.id);
-            if (idx >= 0) items.value[idx] = { ...items.value[idx], ...n };
-            return;
-        }
-        ids.add(n.id);
-        items.value.unshift(n);
+    // --- 유틸 ---
+    function keyOf(n) { return String(n.id); }
+
+    function sortByTimeDesc() {
+        items.value.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
-    // 최초 페이지 로딩
+    // 목록에 안전하게 삽입/업데이트
+    function upsertNotification(n) {
+        if (!n || n.id == null) return;
+        const key = keyOf(n);
+        const idx = items.value.findIndex(x => keyOf(x) === key);
+
+        if (idx >= 0) {
+            items.value[idx] = { ...items.value[idx], ...n };
+        } else {
+            // createdAt 포맷 보정(서버가 문자열로 보낼 때)
+            if (n.createdAt) n.createdAt = dayjs(n.createdAt).toISOString();
+            items.value.unshift(n);
+            ids.add(key);
+            // 메모리 보호
+            if (items.value.length > MAX_ITEMS) {
+                const removed = items.value.splice(MAX_ITEMS);
+                removed.forEach(x => ids.delete(keyOf(x)));
+            }
+        }
+        sortByTimeDesc();
+    }
+
+    // --- API 연동 ---
     async function loadPage({ page = 1, size = 10 } = {}) {
         const pageData = await fetchNotifications({ page, size });
-        // 최신순 보장: 서버 정렬 + 클라에서 한 번 더 정렬
-        const list = (pageData.content || []).sort((a, b) =>
-            new Date(b.createdAt) - new Date(a.createdAt)
-        );
+        const list = (pageData.content || []).map(n => ({
+            ...n,
+            ...(n.createdAt ? { createdAt: dayjs(n.createdAt).toISOString() } : {}),
+        })).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
         if (page === 1) {
             items.value = [];
             ids.clear();
@@ -50,22 +69,19 @@ export const useNotificationStore = defineStore('notification', () => {
         return pageData;
     }
 
-    // 단건 읽음
     async function readOne(id) {
         await markNotificationRead(id);
-        const idx = items.value.findIndex(n => n.id === id);
+        const idx = items.value.findIndex(n => keyOf(n) === String(id));
         if (idx >= 0) items.value[idx] = { ...items.value[idx], isRead: true };
     }
 
-    // 전체 읽음
     async function readAll() {
         await markAllNotificationsRead();
         items.value = items.value.map(n => ({ ...n, isRead: true }));
     }
 
-    // SSE 메시지 파서 (event-stream 규격 단순 파싱)
+    // --- SSE 파서 ---
     function parseSseChunk(buffer, onEvent) {
-        // 이벤트는 \n\n 로 구분
         const events = buffer.split(/\n\n+/);
         for (const raw of events) {
             if (!raw.trim()) continue;
@@ -87,7 +103,7 @@ export const useNotificationStore = defineStore('notification', () => {
         }
     }
 
-    // SSE 연결
+    // --- SSE 연결 ---
     async function connect() {
         if (connected.value || connecting.value) return;
         if (!userStore.accessToken) return;
@@ -99,14 +115,18 @@ export const useNotificationStore = defineStore('notification', () => {
             clearTimeout(reconnectTimer);
             try {
                 const res = await fetch(
-                    `${import.meta.env.VITE_API_BASE_URL}/api/notifications/stream`,
+                    `${import.meta.env.VITE_API_BASE_URL}/api/notifications/stream?t=${Date.now()}`,
                     {
                         method: 'GET',
                         headers: {
                             Accept: 'text/event-stream',
                             Authorization: `Bearer ${userStore.accessToken}`,
+                            'Cache-Control': 'no-cache',
+                            Pragma: 'no-cache',
                             ...(lastEventId.value ? { 'Last-Event-ID': String(lastEventId.value) } : {}),
                         },
+                        cache: 'no-store',
+                        mode: 'cors',
                         signal: abortController.signal,
                     }
                 );
@@ -115,7 +135,6 @@ export const useNotificationStore = defineStore('notification', () => {
                 if (res.status === 401) {
                     const refreshed = await userStore.tryRefresh().catch(() => false);
                     if (refreshed) return doConnect(true);
-                    // 리프레시 실패: 연결 중단
                     throw new Error('Unauthorized');
                 }
 
@@ -134,37 +153,32 @@ export const useNotificationStore = defineStore('notification', () => {
                     const { value, done } = await reader.read();
                     if (done) break;
                     buf += decoder.decode(value, { stream: true });
-                    // 파싱은 덩어리마다 수행
+
                     const cut = buf.lastIndexOf('\n\n');
                     if (cut !== -1) {
                         const chunk = buf.slice(0, cut + 2);
                         buf = buf.slice(cut + 2);
                         parseSseChunk(chunk, ({ event, data, id }) => {
                             if (id) lastEventId.value = id;
-                            if (event === 'init') return; // 헬스 체크
+                            if (event === 'init') return;
                             if (event === 'notification') {
                                 try {
                                     const payload = JSON.parse(data);
-                                    // createdAt 포맷 보정(문자열로 들어올 때)
-                                    if (payload?.createdAt) {
-                                        payload.createdAt = dayjs(payload.createdAt).toISOString();
-                                    }
                                     upsertNotification(payload);
                                 } catch {
-                                    // JSON 아님 → 무시
+                                    /* ignore non-json */
                                 }
                             }
                         });
                     }
                 }
 
-                // 정상 종료(타임아웃 포함) → 재연결
+                // 정상 종료 → 재연결
                 if (connected.value) {
                     connected.value = false;
                     scheduleReconnect();
                 }
             } catch (e) {
-                // abort 가 아닌 경우에만 재연결
                 if (abortController?.signal?.aborted) return;
                 connected.value = false;
                 connecting.value = false;
@@ -174,16 +188,23 @@ export const useNotificationStore = defineStore('notification', () => {
 
         const scheduleReconnect = () => {
             clearTimeout(reconnectTimer);
+            const jitter = Math.floor(Math.random() * 1000); // 0~1s
             reconnectTimer = setTimeout(() => {
-                // 토큰이 있으면 재연결
                 if (userStore.accessToken) {
                     connecting.value = true;
                     doConnect(true);
-                    // 지수 백오프
                     retryMs = Math.min(retryMs * 2, MAX_RETRY_MS);
                 }
-            }, retryMs);
+            }, retryMs + jitter);
         };
+
+        // 전역 리스너(가시성/네트워크 상태) 1회 등록
+        if (!listenersAttached) {
+            listenersAttached = true;
+            window.addEventListener('visibilitychange', handleVisibility);
+            window.addEventListener('online', handleOnline);
+            window.addEventListener('offline', handleOffline);
+        }
 
         // 최초 연결
         retryMs = 3000;
@@ -201,26 +222,29 @@ export const useNotificationStore = defineStore('notification', () => {
         connected.value = false;
     }
 
-    // 토큰 변화를 감지하여 자동 연결/해제
-    watch(
-        () => userStore.accessToken,
-        (at) => {
-            if (at) connect();
-            else disconnect();
-        },
-        { immediate: true }
-    );
+    // 가시성/네트워크 이벤트 핸들러
+    function handleVisibility() {
+        if (document.visibilityState === 'hidden') disconnect();
+        else connect();
+    }
+    function handleOnline() { connect(); }
+    function handleOffline() { disconnect(); }
 
-    // 로그아웃 시 목록 초기화(선택)
+    // 토큰 변화를 감지하여 자동 연결/해제 + 로그아웃 시 클리어
     watch(
         () => userStore.accessToken,
         (at, prev) => {
-            if (!at && prev) {
-                items.value = [];
-                ids.clear();
-                lastEventId.value = null;
+            if (at) connect();
+            else {
+                disconnect();
+                if (prev) {
+                    items.value = [];
+                    ids.clear();
+                    lastEventId.value = null;
+                }
             }
-        }
+        },
+        { immediate: true }
     );
 
     return {
