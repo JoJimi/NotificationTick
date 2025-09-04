@@ -15,4 +15,6 @@ public interface SpringDataStockRepository
     @Query("select s.symbol from Stock s")
     List<String> findAllSymbols();
 
+    List<Stock> findBySymbolIn(Collection<String> symbols);
+
 }

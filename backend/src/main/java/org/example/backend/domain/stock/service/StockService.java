@@ -40,5 +40,15 @@ public class StockService {
         return stockRepository.findWatchingStocksByUserId(userId, pageable);
     }
 
+    /** 등락률 랭킹 조회 (등락률 높은 순) **/
+    public Page<StockResponse> getStocksByChangeRate(Pageable pageable) {
+        return stockRepository.findAllOrderByChangeRateDesc(pageable);
+    }
+
+    /** 거래량 랭킹 조회 (거래량 많은 순) **/
+    public Page<StockResponse> getStocksByVolume(Pageable pageable) {
+        return stockRepository.findAllOrderByVolumeDesc(pageable);
+    }
+
 }
 

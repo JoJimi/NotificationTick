@@ -29,6 +29,19 @@
       <el-table-column prop="name" label="종목명" min-width="200" />
       <el-table-column prop="market" label="시장" width="120" />
       <el-table-column prop="isin" label="ISIN" min-width="200" />
+
+      <!-- 추가: 등락률/거래량 -->
+      <el-table-column label="등락률(%)" width="120">
+        <template #default="{ row }">
+          <span>{{ row.changeRate != null ? Number(row.changeRate).toFixed(2) : '-' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="거래량" width="140">
+        <template #default="{ row }">
+          <span>{{ row.volume != null ? Number(row.volume).toLocaleString() : '-' }}</span>
+        </template>
+      </el-table-column>
+
       <el-table-column prop="watchCount" label="관심수" width="120" />
       <el-table-column label="" width="120">
         <template #default="{ row }">

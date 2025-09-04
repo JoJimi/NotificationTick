@@ -42,6 +42,14 @@ public class Stock extends BaseEntity {     /** 종목 **/
     @Column(name = "isin", nullable = false, length = 12)
     private String isin;
 
+    /** 등락률 (전일 대비 주가 변동률, %) **/
+    @Column(name = "change_rate")
+    private Double changeRate;
+
+    /** 거래량 (주식 거래량) **/
+    @Column(name = "volume")
+    private Long volume;
+
     @Builder.Default
     @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Transaction> transactions = new HashSet<>();
