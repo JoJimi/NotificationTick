@@ -173,10 +173,10 @@ public class StockDataBatchConfig {
         String sql = """
             INSERT INTO stock(symbol, name, market, isin, change_rate, volume)
             VALUES (:symbol, :name, :market, :isin, :changeRate, :volume)
-            ON CONFLICT (symbol) DO UPDATE
-            SET name        = COALESCE(NULLIF(EXCLUDED.name, ''), stock.name),
+            ON CONFLICT ON CONSTRAINT uq_stock_isin DO UPDATE
+            SET symbol      = EXCLUDED.symbol,
+                name        = COALESCE(NULLIF(EXCLUDED.name, ''), stock.name),
                 market      = COALESCE(NULLIF(EXCLUDED.market, ''), stock.market),
-                isin        = COALESCE(NULLIF(EXCLUDED.isin, ''), stock.isin),
                 change_rate = EXCLUDED.change_rate,
                 volume      = EXCLUDED.volume
         """;
