@@ -1,6 +1,7 @@
 package org.example.backend.domain.stock.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
 
 @Schema(description = "종목 정보 응답 DTO")
 public record StockResponse(
@@ -19,6 +20,12 @@ public record StockResponse(
 
         @Schema(description = "ISIN 코드", example = "HK0000057197")
         String isin,
+
+        @Schema(description = "등락률(%)", example = "5.25")
+        Double changeRate,
+
+        @Schema(description = "거래량", example = "1000000")
+        Long volume,
 
         @Schema(description = "관심 종목 수", example = "1234")
         long watchCount
