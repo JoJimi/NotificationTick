@@ -5,6 +5,7 @@
       <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="badge">
         <el-icon><Bell /></el-icon>
       </el-badge>
+      <el-tag v-if="pausedNow" type="warning" size="small" class="ml8">일시중지</el-tag>
     </span>
     <template #dropdown>
       <el-dropdown-menu class="dropdown">
@@ -13,6 +14,7 @@
           <div class="head-actions">
             <el-button size="small" text @click.stop="goAll">전체보기</el-button>
             <el-button size="small" text @click.stop="readAll">모두읽음</el-button>
+            <el-button size="small" text @click.stop="goSettings">설정</el-button>
           </div>
         </div>
 
@@ -47,6 +49,7 @@ const store = useNotificationStore();
 
 const unreadCount = computed(() => store.unreadCount);
 const preview = computed(() => store.items.slice(0, 10));
+const pausedNow = store.pausedNow; // Ref<boolean>
 
 async function onVisible(show) {
   if (show) {
@@ -80,11 +83,15 @@ async function openOne(n) {
 function goAll() {
   router.push('/notifications');
 }
+function goSettings() {
+  router.push('/settings/notifications');
+}
 </script>
 
 <style scoped>
 .bell { cursor: pointer; display: inline-flex; align-items: center; }
 .badge :deep(.el-badge__content){ transform: translate(8px, -8px); }
+.ml8{ margin-left: 8px; }
 .dropdown { width: 360px; padding: 8px; }
 .head{display:flex;justify-content:space-between;align-items:center;padding:6px 10px 8px 10px;border-bottom:1px solid #eee;margin-bottom:6px}
 .head-actions{display:flex;gap:6px}
@@ -94,4 +101,3 @@ function goAll() {
 .meta{font-size:12px;color:#888}
 .empty{padding:10px 6px;color:#888}
 </style>
-
