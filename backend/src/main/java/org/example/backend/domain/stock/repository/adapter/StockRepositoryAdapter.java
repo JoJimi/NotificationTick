@@ -48,6 +48,21 @@ public class StockRepositoryAdapter implements StockRepository {
     }
 
     @Override
+    public Page<StockResponse> findAllOrderByChangeRateDesc(Pageable pageable) {
+        return repository.findAllOrderByChangeRateDesc(pageable);
+    }
+
+    @Override
+    public Page<StockResponse> findAllOrderByVolumeDesc(Pageable pageable) {
+        return repository.findAllOrderByVolumeDesc(pageable);
+    }
+
+    @Override
+    public List<Stock> findAll() {
+        return repository.findAll();  // JpaRepository 기본 제공 메소드 사용
+    }
+
+    @Override
     public Stock save(Stock stock) {
         return repository.save(stock);
     }
@@ -60,5 +75,10 @@ public class StockRepositoryAdapter implements StockRepository {
     @Override
     public List<String> findAllSymbols() {
         return repository.findAllSymbols();
+    }
+
+    @Override
+    public List<Stock> findBySymbols(Collection<String> symbols) {
+        return repository.findBySymbolIn(symbols);
     }
 }

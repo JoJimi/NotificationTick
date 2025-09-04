@@ -13,4 +13,7 @@ public interface StockQueryRepository {
     Page<StockResponse> searchWithWatchCountByKeyword(String keyword, Pageable pageable);
     Page<StockResponse> findAllOrderByWatchCountDesc(Pageable pageable);
     Page<StockResponse> findWatchingStocksByUserId(Long userId, Pageable pageable);
+    Page<StockResponse> findAllOrderByChangeRateDesc(Pageable pageable);
+    Page<StockResponse> findAllOrderByVolumeDesc(Pageable pageable);
+
 }

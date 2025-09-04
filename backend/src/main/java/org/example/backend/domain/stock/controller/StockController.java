@@ -27,10 +27,22 @@ public class StockController {
         return ResponseEntity.ok(page);
     }
 
-    /** 랭킹(관심수 DESC) */
+    /** 관심수 랭킹 (관심등록 많은 순) */
     @GetMapping("/ranking")
     public ResponseEntity<Page<StockResponse>> ranking(Pageable pageable) {
         return ResponseEntity.ok(stockService.getStocksRanking(pageable));
+    }
+
+    /** 등락률 랭킹 (상승률 높은 순) */
+    @GetMapping("/ranking/change-rate")
+    public ResponseEntity<Page<StockResponse>> rankingByChangeRate(Pageable pageable) {
+        return ResponseEntity.ok(stockService.getStocksByChangeRate(pageable));
+    }
+
+    /** 거래량 랭킹 (거래량 많은 순) */
+    @GetMapping("/ranking/volume")
+    public ResponseEntity<Page<StockResponse>> rankingByVolume(Pageable pageable) {
+        return ResponseEntity.ok(stockService.getStocksByVolume(pageable));
     }
 
     /** 단건 조회 */

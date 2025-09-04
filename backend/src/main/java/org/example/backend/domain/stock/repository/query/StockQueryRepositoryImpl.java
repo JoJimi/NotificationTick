@@ -112,12 +112,14 @@ public class StockQueryRepositoryImpl implements StockQueryRepository {
         List<StockResponse> content = qf.select(Projections.constructor(
                         StockResponse.class,
                         s.id, s.symbol, s.name, s.market, s.isin,
-                        w.user.id.count()
+                        w.user.id.count(),
+                        s.changeRate.coalesce(0.0),
+                        s.volume.coalesce(0L)
                 ))
                 .from(s)
                 .join(s.watchList, wUser).on(wUser.user.id.eq(userId))
                 .leftJoin(s.watchList, w)
-                .groupBy(s.id, s.symbol, s.name, s.market, s.isin)
+                .groupBy(s.id, s.symbol, s.name, s.market, s.isin, s.changeRate, s.volume)
                 .orderBy(wUser.createdAt.max().desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -129,5 +131,47 @@ public class StockQueryRepositoryImpl implements StockQueryRepository {
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
+    }
+
+    // 등락률 내림차순 정렬 (최대 상승률 순)
+    @Override
+    public Page<StockResponse> findAllOrderByChangeRateDesc(Pageable pageable) {
+        List<StockResponse> content = qf.select(Projections.constructor(
+                        StockResponse.class,
+                        s.id, s.symbol, s.name, s.market, s.isin,
+                        w.user.id.count(),
+                        s.changeRate.coalesce(0.0),
+                        s.volume.coalesce(0L)
+                ))
+                .from(s)
+                .leftJoin(s.watchList, w)
+                .groupBy(s.id, s.symbol, s.name, s.market, s.isin, s.changeRate, s.volume)
+                .orderBy(s.changeRate.desc(), s.symbol.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+        Long total = qf.select(s.count()).from(s).fetchOne();
+        return new PageImpl<>(content, pageable, total != null ? total : 0);
+    }
+
+    // 거래량 내림차순 정렬 (거래량 많은 순)
+    @Override
+    public Page<StockResponse> findAllOrderByVolumeDesc(Pageable pageable) {
+        List<StockResponse> content = qf.select(Projections.constructor(
+                        StockResponse.class,
+                        s.id, s.symbol, s.name, s.market, s.isin,
+                        w.user.id.count(),
+                        s.changeRate.coalesce(0.0),
+                        s.volume.coalesce(0L)
+                ))
+                .from(s)
+                .leftJoin(s.watchList, w)
+                .groupBy(s.id, s.symbol, s.name, s.market, s.isin, s.changeRate, s.volume)
+                .orderBy(s.volume.desc(), s.symbol.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+        Long total = qf.select(s.count()).from(s).fetchOne();
+        return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
 }
