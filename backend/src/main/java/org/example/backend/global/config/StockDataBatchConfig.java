@@ -3,8 +3,8 @@ package org.example.backend.global.config;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.example.backend.domain.stock.entity.Stock;
-import org.example.backend.domain.stock.repository.StockRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.example.backend.domain.stock.dto.batch.StockUpsert;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -13,10 +13,10 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.JdbcBatchItemWriter;
+import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -26,16 +26,18 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.client.RestTemplate;
 
+import javax.sql.DataSource;
 import java.net.URI;
 import java.util.*;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class StockDataBatchConfig {
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
-    private final StockRepository stockRepository;
+    private final DataSource dataSource;
     private final RestTemplateBuilder restTemplateBuilder;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -45,12 +47,11 @@ public class StockDataBatchConfig {
     @Value("${openapi.serviceKey}")
     private String serviceKey;
 
-    @Value("${openapi.page-size}")
+    @Value("${openapi.page-size:1000}")
     private int pageSize;
 
-    private static final int MAX_PAGE = 10;      // 전체 페이지 수
-    private static final int GRID_SIZE = 5;      // 파티션 개수
-    private Set<String> existingSymbols = new HashSet<>();
+    private static final int MAX_PAGE = 10;
+    private static final int GRID_SIZE = 5;
 
     @Bean
     public RestTemplate restTemplate() {
@@ -85,14 +86,13 @@ public class StockDataBatchConfig {
 
             for (int i = 0; i < GRID_SIZE; i++) {
                 int size = pagesPerPartition + (i < remainder ? 1 : 0);
-                int end = start + size - 1;   // 마지막 파티션의 end 값은 MAX_PAGE=10이 됨
+                int end = start + size - 1;
                 ExecutionContext ctx = new ExecutionContext();
                 ctx.putInt("pageStart", start);
                 ctx.putInt("pageEnd", end);
                 partitions.put("partition" + i, ctx);
                 start = end + 1;
             }
-
             return partitions;
         };
     }
@@ -100,28 +100,28 @@ public class StockDataBatchConfig {
     @Bean
     public Step slaveStep() {
         return new StepBuilder("slaveStep", jobRepository)
-                .<Stock, Stock>chunk(pageSize, transactionManager)
+                .<StockUpsert, StockUpsert>chunk(pageSize, transactionManager)
                 .reader(slaveItemReader(0, 0))
-                .writer(stockItemWriter())
+                .writer(stockUpsertWriter())
                 .build();
     }
 
     @Bean
     @StepScope
-    public ItemReader<Stock> slaveItemReader(
+    public ItemReader<StockUpsert> slaveItemReader(
             @Value("#{stepExecutionContext['pageStart']}") int pageStart,
             @Value("#{stepExecutionContext['pageEnd']}")   int pageEnd
     ) {
         return new ItemReader<>() {
-            private Iterator<Stock> iterator;
+            private Iterator<StockUpsert> iterator;
 
             @Override
-            public Stock read() throws Exception {
+            public StockUpsert read() throws Exception {
                 if (iterator == null) {
-                    existingSymbols = new HashSet<>(stockRepository.findAllSymbols());
+                    RestTemplate restTemplate = restTemplate();
 
-                    List<Stock> fetched = new ArrayList<>();
-                    RestTemplate rt = restTemplate();
+                    Set<String> seenInPartition = new HashSet<>();
+                    List<StockUpsert> fetched = new ArrayList<>();
 
                     for (int page = pageStart; page <= pageEnd; page++) {
                         URI uri = URI.create(apiUrl
@@ -129,44 +129,63 @@ public class StockDataBatchConfig {
                                 + "&resultType=json"
                                 + "&numOfRows=" + pageSize
                                 + "&pageNo=" + page);
-                        String json = rt.getForObject(uri, String.class);
-                        if (json == null) continue;
+
+                        String json = restTemplate.getForObject(uri, String.class);
+                        if (json == null || json.isBlank()) continue;
 
                         JsonNode items = objectMapper.readTree(json)
                                 .path("response").path("body").path("items").path("item");
+
                         if (items.isArray()) {
                             for (JsonNode item : items) {
                                 String symbol = item.path("srtnCd").asText();
-                                if (existingSymbols.contains(symbol)) continue;
-                                existingSymbols.add(symbol);
-                                fetched.add(Stock.builder()
-                                        .symbol(symbol)
-                                        .name(item.path("itmsNm").asText())
-                                        .market(item.path("mrktCtg").asText())
-                                        .isin(item.path("isinCd").asText())
-                                        .build());
+                                if (symbol.isBlank() || !seenInPartition.add(symbol)) continue;
+
+                                String name = item.path("itmsNm").asText();
+                                String market = item.path("mrktCtg").asText();
+                                String isin = item.path("isinCd").asText();
+
+                                String fltRtStr = item.path("fltRt").asText();
+                                String volumeStr = item.path("trqu").asText();
+
+                                Double changeRate = 0.0;
+                                Long volume = 0L;
+                                try {
+                                    if (!fltRtStr.isBlank()) changeRate = Double.parseDouble(fltRtStr);
+                                    if (!volumeStr.isBlank()) volume = Long.parseLong(volumeStr);
+                                } catch (NumberFormatException e) {
+                                    log.warn("Parse error: symbol={}, fltRt='{}', trqu='{}'", symbol, fltRtStr, volumeStr);
+                                }
+
+                                fetched.add(new StockUpsert(symbol, name, market, isin, changeRate, volume));
                             }
                         }
                     }
-
                     this.iterator = fetched.iterator();
                 }
-
-                return iterator.hasNext() ? iterator.next() : null;
+                return (iterator != null && iterator.hasNext()) ? iterator.next() : null;
             }
         };
     }
 
     @Bean
-    public ItemWriter<Stock> stockItemWriter() {
-        return (Chunk<? extends Stock> chunk) -> {
-            List<? extends Stock> items = chunk.getItems();
+    public JdbcBatchItemWriter<StockUpsert> stockUpsertWriter() {
+        String sql = """
+            INSERT INTO stock(symbol, name, market, isin, change_rate, volume)
+            VALUES (:symbol, :name, :market, :isin, :changeRate, :volume)
+            ON CONFLICT (symbol) DO UPDATE
+            SET name        = COALESCE(NULLIF(EXCLUDED.name, ''), stock.name),
+                market      = COALESCE(NULLIF(EXCLUDED.market, ''), stock.market),
+                isin        = COALESCE(NULLIF(EXCLUDED.isin, ''), stock.isin),
+                change_rate = EXCLUDED.change_rate,
+                volume      = EXCLUDED.volume
+        """;
 
-            if (!items.isEmpty()) {
-                List<Stock> list = new ArrayList<>(items);
-                stockRepository.saveAll(list);
-            }
-        };
+        return new JdbcBatchItemWriterBuilder<StockUpsert>()
+                .dataSource(dataSource)
+                .sql(sql)
+                .beanMapped()  // StockUpsert의 accessor 이름(:symbol 등)로 바인딩
+                .build();
     }
 
     @Bean
@@ -175,6 +194,7 @@ public class StockDataBatchConfig {
         executor.setCorePoolSize(GRID_SIZE);
         executor.setMaxPoolSize(GRID_SIZE);
         executor.setQueueCapacity(GRID_SIZE);
+        executor.setThreadNamePrefix("stock-batch-");
         executor.afterPropertiesSet();
         return executor;
     }
