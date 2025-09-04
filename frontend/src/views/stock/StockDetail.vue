@@ -26,6 +26,15 @@
         <el-descriptions-item label="종목명">{{ stock.name }}</el-descriptions-item>
         <el-descriptions-item label="시장">{{ stock.market }}</el-descriptions-item>
         <el-descriptions-item label="ISIN">{{ stock.isin }}</el-descriptions-item>
+
+        <!-- 추가: 등락률/거래량 -->
+        <el-descriptions-item label="등락률(%)">
+          {{ stock.changeRate != null ? Number(stock.changeRate).toFixed(2) : '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="거래량">
+          {{ stock.volume != null ? Number(stock.volume).toLocaleString() : '-' }}
+        </el-descriptions-item>
+
         <el-descriptions-item label="관심수">{{ stock.watchCount }}</el-descriptions-item>
       </el-descriptions>
       <div v-else>데이터가 없습니다.</div>
