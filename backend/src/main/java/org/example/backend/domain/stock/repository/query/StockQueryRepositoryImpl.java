@@ -5,6 +5,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.domain.stock.dto.response.StockResponse;
 import org.example.backend.domain.stock.entity.QStock;
+import org.example.backend.domain.stock.entity.Stock;
 import org.example.backend.domain.watch_list.entity.QWatchList;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -178,5 +179,31 @@ public class StockQueryRepositoryImpl implements StockQueryRepository {
 
         Long total = qf.select(s.count()).from(s).fetchOne();
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
+    }
+
+    @Override
+    public List<Stock> findByAbsChangeRateGte(double threshold) {
+        double t = Math.abs(threshold);
+        return qf.selectFrom(s)
+                .where(s.changeRate.goe(t)
+                        .or(s.changeRate.loe(-t)))
+                .orderBy(s.changeRate.desc())   // 필요시 정렬
+                .fetch();
+    }
+
+    @Override
+    public List<Stock> findByChangeRateGte(double threshold) {
+        return qf.selectFrom(s)
+                .where(s.changeRate.goe(threshold))
+                .orderBy(s.changeRate.desc())
+                .fetch();
+    }
+
+    @Override
+    public List<Stock> findByChangeRateLte(double threshold) {
+        return qf.selectFrom(s)
+                .where(s.changeRate.loe(threshold))
+                .orderBy(s.changeRate.asc())
+                .fetch();
     }
 }
