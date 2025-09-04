@@ -40,6 +40,7 @@ import { ElMessage } from 'element-plus';
 import { Bell } from '@element-plus/icons-vue';
 import { useNotificationStore } from '@/store/notificationStore';
 import { useRouter } from 'vue-router';
+import { routeByNotification } from '@/utils/notifications';
 
 const router = useRouter();
 const store = useNotificationStore();
@@ -47,10 +48,10 @@ const store = useNotificationStore();
 const unreadCount = computed(() => store.unreadCount);
 const preview = computed(() => store.items.slice(0, 10));
 
-function onVisible(show) {
-  if (show && store.items.length === 0) {
-    // 첫 오픈 시 1페이지 프리페치
-    store.loadPage({ page: 1, size: 10 }).catch(() => {});
+async function onVisible(show) {
+  if (show) {
+    // 열릴 때마다 1페이지 동기화(최신 10개 보장)
+    try { await store.loadPage({ page: 1, size: 10 }); } catch {}
   }
 }
 
@@ -70,9 +71,7 @@ async function readAll() {
 async function openOne(n) {
   try {
     if (!n.isRead) await store.readOne(n.id);
-    // 알림 타입에 따라 라우팅 로직을 확장할 수 있습니다.
-    // 예: NEWS_EVENT → 관련 종목 상세/뉴스로 이동 등
-    router.push('/notifications');
+    router.push(routeByNotification(n));
   } catch {
     ElMessage.error('처리에 실패했습니다.');
   }
@@ -95,3 +94,4 @@ function goAll() {
 .meta{font-size:12px;color:#888}
 .empty{padding:10px 6px;color:#888}
 </style>
+

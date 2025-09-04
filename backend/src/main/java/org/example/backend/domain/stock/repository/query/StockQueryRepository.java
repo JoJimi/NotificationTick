@@ -1,6 +1,7 @@
 package org.example.backend.domain.stock.repository.query;
 
 import org.example.backend.domain.stock.dto.response.StockResponse;
+import org.example.backend.domain.stock.entity.Stock;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -15,5 +16,9 @@ public interface StockQueryRepository {
     Page<StockResponse> findWatchingStocksByUserId(Long userId, Pageable pageable);
     Page<StockResponse> findAllOrderByChangeRateDesc(Pageable pageable);
     Page<StockResponse> findAllOrderByVolumeDesc(Pageable pageable);
+
+    List<Stock> findByAbsChangeRateGte(double threshold);
+    List<Stock> findByChangeRateGte(double threshold);
+    List<Stock> findByChangeRateLte(double threshold);
 
 }

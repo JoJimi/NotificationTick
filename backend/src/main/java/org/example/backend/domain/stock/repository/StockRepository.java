@@ -25,4 +25,8 @@ public interface StockRepository {
     List<String> findAllSymbols();
     List<Stock> findBySymbols(Collection<String> symbols);
 
+    List<Stock> findByAbsChangeRateGte(double threshold);
+    List<Stock> findByChangeRateGte(double threshold);
+    List<Stock> findByChangeRateLte(double threshold);
+
 }

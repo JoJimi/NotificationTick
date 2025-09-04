@@ -32,4 +32,46 @@ public class NotificationProducer {
         );
         kafkaTemplate.send(TOPIC, event);
     }
+
+    /** 관심 등록 시 관심종목 급등 이벤트 발행 */
+    public void sendPriceSurgeByInterestAddedEvent(Long userId, Stock stock) {
+        NotificationEvent event = NotificationEvent.ofPriceSurgeByInterestAddedEvent(
+                userId,
+                stock.getId(),
+                stock.getName(),
+                stock.getChangeRate()
+        );
+        kafkaTemplate.send(TOPIC, event);
+    }
+
+    /** 관심 등록 시 관심종목 급락 이벤트 발행 */
+    public void sendPriceDropByInterestAddedEvent(Long userId, Stock stock) {
+        NotificationEvent event = NotificationEvent.ofPriceDropByInterestAddedEvent(
+                userId,
+                stock.getId(),
+                stock.getName(),
+                stock.getChangeRate()
+        );
+        kafkaTemplate.send(TOPIC, event);
+    }
+
+    /** 특정 시간에 관심종목 급등 이벤트 발행 */
+    public void sendPriceSurgeByScheduledEvent(Stock stock) {
+        NotificationEvent event = NotificationEvent.ofPriceSurgeByScheduledEvent(
+                stock.getId(),
+                stock.getName(),
+                stock.getChangeRate()
+        );
+        kafkaTemplate.send(TOPIC, event);
+    }
+
+    /** 특정 시간에 관심종목 급락 이벤트 발행 */
+    public void sendPriceDropByScheduledEvent(Stock stock) {
+        NotificationEvent event = NotificationEvent.ofPriceDropByScheduledEvent(
+                stock.getId(),
+                stock.getName(),
+                stock.getChangeRate()
+        );
+        kafkaTemplate.send(TOPIC, event);
+    }
 }

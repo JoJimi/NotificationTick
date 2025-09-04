@@ -24,10 +24,17 @@
           <div :class="{ unread: !row.isRead }">{{ row.message }}</div>
         </template>
       </el-table-column>
-      <el-table-column prop="type" label="유형" width="140" />
+
+      <el-table-column prop="type" label="유형" width="160">
+        <template #default="{ row }">
+          <el-tag :type="tagType(row.type)">{{ typeLabel(row.type) }}</el-tag>
+        </template>
+      </el-table-column>
+
       <el-table-column prop="createdAt" label="시각" width="170">
         <template #default="{ row }">{{ fmt(row.createdAt) }}</template>
       </el-table-column>
+
       <el-table-column label="" width="120">
         <template #default="{ row }">
           <el-button size="small" @click.stop="open(row)">열기</el-button>
@@ -57,6 +64,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import dayjs from 'dayjs';
 import { useNotificationStore } from '@/store/notificationStore';
+import { typeLabel, tagType, routeByNotification } from '@/utils/notifications';
 
 const route = useRoute();
 const router = useRouter();
@@ -106,16 +114,15 @@ async function onRead(row) {
 async function onReadAll() {
   try {
     await store.readAll();
-    ElMessage.success('모든 알림을 읽음 처리했습니다.');
   } catch {
     ElMessage.error('처리에 실패했습니다.');
+    return;
   }
+  ElMessage.success('모든 알림을 읽음 처리했습니다.');
 }
 
 function open(row) {
-  // 알림 타입 별 라우팅 커스터마이즈 포인트
-  // 예: if (row.type === 'NEWS_EVENT') router.push(`/news/${symbol}`)
-  // 여기서는 목록 유지
+  router.push(routeByNotification(row));
 }
 
 watch(() => route.query, () => {

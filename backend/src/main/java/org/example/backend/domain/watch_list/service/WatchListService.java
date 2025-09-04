@@ -37,11 +37,20 @@ public class WatchListService {
                         .stock(stock)
                         .build();
                 watchListRepository.save(watchList);
+
+                if(watchList.getStock().getChangeRate() > 5.0){
+                    producer.sendPriceSurgeByInterestAddedEvent(userId, watchList.getStock());
+                }
+                else if(watchList.getStock().getChangeRate() < -5.0){
+                    producer.sendPriceDropByInterestAddedEvent(userId, watchList.getStock());
+                }
             } catch (DataIntegrityViolationException e) { /* 중복 추가 예외 무시 */ }
 
             newsService.addWatchAndFetchNews(userId, symbol);
             producer.sendInterestAdded(userId, stock);
         }
+
+
         long count = watchListRepository.countByStockId(stockId);
         return new WatchListResponse(symbol, true, count);
     }
@@ -80,6 +89,13 @@ public class WatchListService {
                         .stock(stock)
                         .build();
                 watchListRepository.save(watchList);
+
+                if(watchList.getStock().getChangeRate() > 5.0){
+                    producer.sendPriceSurgeByInterestAddedEvent(userId, watchList.getStock());
+                }
+                else if(watchList.getStock().getChangeRate() < -5.0){
+                    producer.sendPriceDropByInterestAddedEvent(userId, watchList.getStock());
+                }
             } catch (DataIntegrityViolationException e) { /* 중복 예외 무시 */ }
 
             newsService.addWatchAndFetchNews(userId, symbol);
