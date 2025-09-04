@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -35,9 +37,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String AUTHORIZATION_HEADER = HttpHeaders.AUTHORIZATION;
     private static final String BEARER_PREFIX = "Bearer ";
 
+    private static final Set<String> PUBLIC_PATH_PREFIXES = Set.of(
+            "/swagger-ui/", "/v3/", "/oauth2/", "/auth/", "/actuator/"
+    );
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // 1) HTTP 헤더에서 토큰 꺼내기
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+
+        // 0) Preflight는 그대로 통과
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 1) HTTP 헤더에서 토큰 꺼내기(헤더 → 쿼리파라미터 → 쿠키)
         String token = resolveToken(request);
 
         if (StringUtils.hasText(token)) {
@@ -93,14 +108,41 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Authorization 헤더에서 "Bearer " 접두사가 붙은 토큰만 잘라서 반환.
-     * 없거나 형식이 맞지 않으면 null 반환.
+     * 토큰 추출 우선순위:
+     * 1) Authorization: Bearer xxx
+     * 2) ?access_token=xxx (또는 ?token=xxx)
+     * 3) 쿠키 access_token (또는 Authorization=Bearer xxx)
      */
     private String resolveToken(HttpServletRequest request) {
+        // 1) Authorization 헤더
         String bearer = request.getHeader(AUTHORIZATION_HEADER);
-
         if (StringUtils.hasText(bearer) && bearer.startsWith(BEARER_PREFIX)) {
             return bearer.substring(BEARER_PREFIX.length());
+        }
+
+        // 2) Query String (?access_token= / ?token=)
+        String fromQuery = request.getParameter("access_token");
+        if (!StringUtils.hasText(fromQuery)) {
+            fromQuery = request.getParameter("token");
+        }
+        if (StringUtils.hasText(fromQuery)) {
+            return fromQuery.trim();
+        }
+
+        // 3) Cookie
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie c : cookies) {
+                if ("access_token".equals(c.getName()) && StringUtils.hasText(c.getValue())) {
+                    return c.getValue().trim();
+                }
+                if ("Authorization".equalsIgnoreCase(c.getName())) {
+                    String v = c.getValue();
+                    if (StringUtils.hasText(v) && v.startsWith(BEARER_PREFIX)) {
+                        return v.substring(BEARER_PREFIX.length()).trim();
+                    }
+                }
+            }
         }
 
         return null;
