@@ -1,5 +1,6 @@
 package org.example.backend.global.jwt.oauth2;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.global.exception.auth.InvalidRefreshTokenException;
 import org.example.backend.global.jwt.JwtTokenProvider;
@@ -24,7 +25,7 @@ public class AuthController {
      */
     @PostMapping("/refresh")
     public ResponseEntity<TokenResponse> refresh(
-            @RequestBody TokenRequest request
+            @Valid @RequestBody TokenRequest request
     ) {
         String refreshToken = request.refreshToken();
 
