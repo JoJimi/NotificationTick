@@ -21,7 +21,7 @@ public class TokenRepository {
     // RefreshToken을 사용자 식별값을 키로 하여 저장
     public void save(String userId, String refreshToken) {
         redisTemplate.opsForValue()
-                .set(keyOf(userId), refreshToken, Duration.ofDays(jwtProperties.getRefreshTokenExpirationMs()));     // 만료시간 설정 (7일)
+                .set(keyOf(userId), refreshToken, Duration.ofMillis(jwtProperties.getRefreshTokenExpirationMs()));     // 만료시간 설정 (7일)
     }
 
     // 키로 저장된 리프레시 토큰 조회
