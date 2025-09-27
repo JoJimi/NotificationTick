@@ -23,7 +23,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -36,10 +35,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String AUTHORIZATION_HEADER = HttpHeaders.AUTHORIZATION;
     private static final String BEARER_PREFIX = "Bearer ";
-
-    private static final Set<String> PUBLIC_PATH_PREFIXES = Set.of(
-            "/swagger-ui/", "/v3/", "/oauth2/", "/auth/", "/actuator/"
-    );
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
