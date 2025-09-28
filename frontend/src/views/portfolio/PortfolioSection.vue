@@ -5,8 +5,10 @@
       <div class="header-row">
         <span>내 포트폴리오</span>
         <div class="actions">
-          <el-button type="primary" @click="openCreate">새 포트폴리오</el-button>
-          <el-button @click="load" :loading="loading">새로고침</el-button>
+          <el-button-group>
+            <el-button type="primary" @click="openCreate">새 포트폴리오</el-button>
+            <el-button @click="load" :loading="loading">새로고침</el-button>
+          </el-button-group>
         </div>
       </div>
     </template>

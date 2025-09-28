@@ -5,14 +5,10 @@
       <div class="header-row">
         <span>종목 목록</span>
         <div class="actions">
-          <el-input
-              v-model="keyword"
-              placeholder="심볼/이름/ISIN 검색"
-              clearable
-              @keyup.enter="applySearch"
-              style="width: 260px"
-          />
-          <el-button type="primary" @click="applySearch">검색</el-button>
+          <el-input v-model="keyword" placeholder="심볼/이름/ISIN 검색" clearable @keyup.enter="applySearch" style="width: 260px" />
+          <el-button-group>
+            <el-button type="primary" @click="applySearch">검색</el-button>
+          </el-button-group>
         </div>
       </div>
     </template>

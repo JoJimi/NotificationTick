@@ -5,8 +5,10 @@
       <div class="header-row">
         <span>내 알림</span>
         <div class="actions">
-          <el-button size="small" @click="refresh">새로고침</el-button>
-          <el-button size="small" text @click="onReadAll">모두읽음</el-button>
+          <el-button-group>
+            <el-button size="small" @click="refresh">새로고침</el-button>
+            <el-button size="small" text @click="onReadAll">모두읽음</el-button>
+          </el-button-group>
         </div>
       </div>
     </template>

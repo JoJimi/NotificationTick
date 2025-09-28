@@ -6,9 +6,11 @@
         <span>거래 내역</span>
         <div class="actions">
           <el-input v-model="search" placeholder="심볼 검색 (예: AAPL)" clearable @keyup.enter="applySearch" style="width: 200px" />
-          <el-button @click="applySearch">검색</el-button>
-          <el-button type="primary" @click="openCreate">새 거래</el-button>
-          <el-button @click="load" :loading="loading">새로고침</el-button>
+          <el-button-group>
+            <el-button @click="applySearch">검색</el-button>
+            <el-button type="primary" @click="openCreate">새 거래</el-button>
+            <el-button @click="load" :loading="loading">새로고침</el-button>
+          </el-button-group>
         </div>
       </div>
     </template>
@@ -230,9 +232,6 @@ async function onDelete(row) {
 </script>
 
 <style scoped>
-.mt16{ margin-top:16px }
 .header-row{ display:flex; justify-content:space-between; align-items:center }
-.actions{ display:flex; gap:8px; align-items:center }
-.pager{ display:flex; justify-content:flex-end; margin-top:12px }
-.table-header{ font-weight:700 }
+.actions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap }
 </style>
