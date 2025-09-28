@@ -5,9 +5,11 @@
       <div class="header-row">
         <span>포트폴리오 상세</span>
         <div class="actions">
-          <el-button @click="$router.back()">뒤로</el-button>
-          <el-button type="primary" @click="editQuick" :disabled="!portfolio">빠른 수정</el-button>
-          <el-button type="danger" text @click="remove" :disabled="!portfolio">삭제</el-button>
+          <el-button-group>
+            <el-button @click="$router.back()">뒤로</el-button>
+            <el-button type="primary" @click="editQuick" :disabled="!portfolio">빠른 수정</el-button>
+            <el-button type="danger" text @click="remove" :disabled="!portfolio">삭제</el-button>
+          </el-button-group>
         </div>
       </div>
     </template>

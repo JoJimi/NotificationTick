@@ -5,15 +5,13 @@
       <div class="header-row">
         <span>종목 상세</span>
         <div class="btns">
-          <el-button @click="$router.back()">뒤로</el-button>
-          <el-button
-              :type="watching ? 'success' : 'info'"
-              :disabled="!stock"
-              @click="onToggle"
-          >
-            {{ watching ? '관심 해제' : '관심 등록' }} ({{ count }})
-          </el-button>
-          <el-button type="primary" :disabled="!stock" @click="$router.push(`/news/${stock.symbol}`)">관련 뉴스</el-button>
+          <el-button-group>
+            <el-button @click="$router.back()">뒤로</el-button>
+            <el-button :type="watching ? 'success' : 'info'" :disabled="!stock" @click="onToggle">
+              {{ watching ? '관심 해제' : '관심 등록' }} ({{ count }})
+            </el-button>
+            <el-button type="primary" :disabled="!stock" @click="$router.push(`/news/${stock.symbol}`)">관련 뉴스</el-button>
+          </el-button-group>
         </div>
       </div>
     </template>
