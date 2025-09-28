@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.backend.global.exception.ErrorCode;
 import org.example.backend.global.exception.ErrorResponse;
 import org.example.backend.global.jwt.custom.CustomUserDetailsService;
+import org.example.backend.global.jwt.redis.TokenService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,11 +28,11 @@ import java.io.IOException;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-// 들어오는 요청의 헤더에서 JWT를 추출해 검증 후 SecurityContext에 인증 객체 설정
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
     private final ObjectMapper objectMapper;
+    private final TokenService tokenService;
 
     private static final String AUTHORIZATION_HEADER = HttpHeaders.AUTHORIZATION;
     private static final String BEARER_PREFIX = "Bearer ";
@@ -41,33 +42,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // 0) Preflight는 그대로 통과
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 1) HTTP 헤더에서 토큰 꺼내기(헤더 → 쿼리파라미터 → 쿠키)
         String token = resolveToken(request);
 
         if (StringUtils.hasText(token)) {
             try {
-                // 2) 토큰 유효성 검사 (만료, 서명, 타입 등)
                 if (jwtTokenProvider.validateAccessToken(token)) {
-                    // 3) 토큰에서 userId 추출
                     String userId = jwtTokenProvider.getSubject(token);
 
-                    // 4) 아직 인증 정보가 없다면 SecurityContext 에 등록
+                    // fam 블랙리스트(세션군 차단) 체크 — 재사용 탐지 후 AT도 차단
+                    String fam = jwtTokenProvider.getFamilyId(token);
+                    if (tokenService.isFamilyBlacklisted(fam)) {
+                        sendErrorResponse(response, ErrorCode.UNAUTHORIZED);
+                        return;
+                    }
+
                     if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                         UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId);
-
                         UsernamePasswordAuthenticationToken authentication =
                                 new UsernamePasswordAuthenticationToken(
-                                        userDetails,
-                                        null,                                    // credentials: 토큰을 직접 저장할 필요 없음
-                                        userDetails.getAuthorities()                        // DB에 저장된 권한 그대로 사용
+                                        userDetails, null, userDetails.getAuthorities()
                                 );
-
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                     }
                 }
@@ -102,20 +101,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         objectMapper.writeValue(response.getWriter(), body);
     }
 
-    /**
-     * 토큰 추출 우선순위:
-     * 1) Authorization: Bearer xxx
-     * 2) ?access_token=xxx (또는 ?token=xxx)
-     * 3) 쿠키 access_token (또는 Authorization=Bearer xxx)
-     */
     private String resolveToken(HttpServletRequest request) {
-        // 1) Authorization 헤더
         String bearer = request.getHeader(AUTHORIZATION_HEADER);
         if (StringUtils.hasText(bearer) && bearer.startsWith(BEARER_PREFIX)) {
             return bearer.substring(BEARER_PREFIX.length());
         }
-
-        // 2) Query String (?access_token= / ?token=)
         String fromQuery = request.getParameter("access_token");
         if (!StringUtils.hasText(fromQuery)) {
             fromQuery = request.getParameter("token");
@@ -123,8 +113,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (StringUtils.hasText(fromQuery)) {
             return fromQuery.trim();
         }
-
-        // 3) Cookie
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie c : cookies) {
@@ -139,7 +127,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         }
-
         return null;
     }
 }
