@@ -7,6 +7,7 @@ import org.example.backend.global.jwt.oauth2.*;
 import org.example.backend.type.RoleType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
@@ -52,9 +53,10 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(AUTH_ALLOWLIST).permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/admin/**").hasAuthority(String.valueOf(RoleType.ROLE_ADMIN.name()))
-                        .requestMatchers("/api/**").hasAuthority(String.valueOf(RoleType.ROLE_USER.name()))
+                        .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/auth/logout").hasAuthority(RoleType.ROLE_USER.name())
+                        .requestMatchers("/admin/**").hasAuthority(RoleType.ROLE_ADMIN.name())
+                        .requestMatchers("/api/**").hasAuthority(RoleType.ROLE_USER.name())
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2Login(oauth2 -> oauth2

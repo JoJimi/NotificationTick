@@ -20,7 +20,6 @@ import java.io.IOException;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-// OAuth2 로그인 성공 핸들러
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtTokenProvider tokenProvider;
@@ -34,23 +33,13 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException {
-        /**
-         * [** 트러블 슈팅 **]
-         * Google: OIDC 방식 사용 -> OidcUserService가 실행되어 DefaultOidUser 반환
-         * Kakao: 일반 OAuth2 방식 -> 우리가 등록한 CustomAuth2UserService가 실행되어 CustomOAuth2User 반환
-         * 근데 다음 성공 핸들러에서 무조건 CustomOAuth2User로 캐스팅하기 때문에
-         * google 로그인의 경우 DefaultOidUser 이므로 오류
-         * 해결방안: 나눠서 분기별로 실행
-         */
+
         OAuth2User principal = (OAuth2User) authentication.getPrincipal();
         CustomOAuth2User oAuthUser;
 
         if (principal instanceof CustomOAuth2User customUser) {
-            // 카카오 로그인
             oAuthUser = customUser;
-
         } else if (principal instanceof DefaultOidcUser oidcUser) {
-            // 구글 로그인
             oAuthUser = new CustomOAuth2User(
                     registration.registerOrUpdate(
                             LoginType.GOOGLE,
@@ -61,18 +50,24 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                     oidcUser.getAttributes(),
                     oidcUser.getAuthorities()
             );
-
         } else {
             throw new IllegalStateException("지원하지 않는 principal 타입");
         }
 
-        String userIdKey    = oAuthUser.getUser().getId().toString();
-        String accessToken  = tokenProvider.generateAccessToken(userIdKey);
-        String refreshToken = tokenProvider.generateRefreshToken(userIdKey);
+        String userId = oAuthUser.getUser().getId().toString();
 
-        // Redis에는 이제 providerId 가 아니라 UserId를 String 형태를 키로 저장
-        tokenService.storeRefreshToken(userIdKey, refreshToken);
+        // 신규 세션군(family) 생성
+        String familyId = tokenProvider.newFamilyId();
 
+        // 토큰 발급
+        String accessToken  = tokenProvider.generateAccessToken(userId, familyId);
+        String refreshToken = tokenProvider.generateRefreshToken(userId, familyId);
+
+        // jti 추출 후 세션 저장
+        String jti = tokenProvider.getJti(refreshToken);
+        tokenService.initSession(userId, familyId, jti);
+
+        // (기존과 동일) 쿼리스트링 전달 — 운영시 HttpOnly 쿠키/교환 엔드포인트 권장
         String redirectUri = UriComponentsBuilder
                 .fromHttpUrl(frontBaseUrl + "/oauth2/callback")
                 .queryParam("accessToken",  accessToken)
@@ -80,8 +75,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .build()
                 .toUriString();
 
-        log.info(redirectUri);
-
+        log.info("OAuth2 redirect: {}", redirectUri);
         getRedirectStrategy().sendRedirect(request, response, redirectUri);
     }
 }

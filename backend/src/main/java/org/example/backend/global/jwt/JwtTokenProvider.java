@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.HexFormat;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -22,14 +24,22 @@ public class JwtTokenProvider implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        // 만약 secretKey가 Base64 인코딩 문자열이면 decode해서 Key 객체를 만든다
-        this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getJwtSecretKey()));
+        // Base64 또는 Hex 포맷 모두 수용
+        String raw = jwtProperties.getJwtSecretKey();
+        byte[] keyBytes;
+        try {
+            keyBytes = Decoders.BASE64.decode(raw);
+        } catch (IllegalArgumentException e) {
+            keyBytes = HexFormat.of().parseHex(raw);
+        }
+        this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
     // Access Token 생성
-    public String generateAccessToken(String userId){
+    public String generateAccessToken(String userId, String familyId) {
         Claims claims = Jwts.claims().setSubject(userId);
         claims.put("token_type", "accessToken");
+        claims.put("fam", familyId);
 
         Date now = new Date();
         Date validity = new Date((new Date()).getTime() + jwtProperties.getAccessTokenExpirationMs());
@@ -42,10 +52,18 @@ public class JwtTokenProvider implements InitializingBean {
                 .compact();
     }
 
+    @Deprecated
+    public String generateAccessToken(String userId){
+        return generateAccessToken(userId, newFamilyId());
+    }
+
     // Refresh Token 생성
-    public String generateRefreshToken(String userId){
+    public String generateRefreshToken(String userId, String familyId){
         Claims claims = Jwts.claims().setSubject(userId);
         claims.put("token_type", "refreshToken");
+        claims.put("fam", familyId);
+        claims.put("jti", UUID.randomUUID().toString());
+
 
         Date now = new Date();
         Date validity = new Date((new Date()).getTime() + jwtProperties.getRefreshTokenExpirationMs());
@@ -62,13 +80,12 @@ public class JwtTokenProvider implements InitializingBean {
     public boolean validateAccessToken(String accessToken){
         try {
             Claims claims = parseClaims(accessToken);
-
             String tokenType = (String) claims.get("token_type");
+
             if (!tokenType.equals("accessToken")) {
                 log.warn("토큰 타입(accessToken) 불일치");
                 return false;
             }
-
             return !claims.getExpiration().before(new Date());
 
         } catch (SecurityException | MalformedJwtException e) {
@@ -87,13 +104,12 @@ public class JwtTokenProvider implements InitializingBean {
     public boolean validateRefreshToken(String refreshToken){
         try {
             Claims claims = parseClaims(refreshToken);
-
             String tokenType = (String) claims.get("token_type");
+
             if (!tokenType.equals("refreshToken")) {
                 log.warn("토큰 타입(refreshToken) 불일치");
                 return false;
             }
-
             return !claims.getExpiration().before(new Date());
 
         } catch (SecurityException | MalformedJwtException e) {
@@ -108,9 +124,12 @@ public class JwtTokenProvider implements InitializingBean {
         return false;
     }
 
-    public String getSubject(String token) {
-        return parseClaims(token).getSubject();
-    }
+    public String getSubject(String token) { return parseClaims(token).getSubject(); }
+    public String getFamilyId(String token) { return String.valueOf(parseClaims(token).get("fam")); }
+    public String getJti(String token) { return String.valueOf(parseClaims(token).get("jti")); }
+    public Date getExpiration(String token) { return parseClaims(token).getExpiration(); }
+
+    public String newFamilyId() { return UUID.randomUUID().toString(); }
 
     /**
      * JWT 파싱 메서드

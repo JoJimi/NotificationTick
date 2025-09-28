@@ -31,6 +31,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
+	implementation("net.bytebuddy:byte-buddy")
+	implementation("net.bytebuddy:byte-buddy-agent")
+
 	// kafka
 	implementation("org.springframework.kafka:spring-kafka")
 
