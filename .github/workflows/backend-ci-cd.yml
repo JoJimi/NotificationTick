@@ -31,7 +31,7 @@ jobs:
           --health-retries=10
 
     steps:
-      - name: Check out code
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Make Docker Env
@@ -42,8 +42,10 @@ jobs:
       - name: make application.yml
         run: |
           cd ./src/main/resources
-          touch ./application-dev.yml
-          echo "${{ secrets.DEV }}" >> ./application-dev.yml
+          touch ./application.yml
+          echo "${{ secrets.APPLICATION }}" >> ./application.yml
+          touch ./application-prod.yml
+          echo "${{ secrets.APPLICATION_PROD }}" >> ./application-prod.yml
         shell: bash
 
       - name: Set up JDK
@@ -71,7 +73,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./backend
-          file: backend/Dockerfile
+          file: backend/docker/Dockerfile
           push: true
           tags: |
             jimineutron/notification_tick-backend:latest
