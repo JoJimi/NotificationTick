@@ -43,4 +43,5 @@ bin/
 
 /backend/src/main/resources/application-prod.yml
 /backend/src/main/resources/application-dev.yml
+/backend/src/main/resources/application.yml
 /backend/.env
