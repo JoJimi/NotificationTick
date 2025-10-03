@@ -1,51 +1,81 @@
 services:
+  app:
+    image: ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}:latest
+    container_name: predictick_app_prod
+    ports:
+      - "8080:8080"
+    env_file:
+      - ../.env           # 서버에 있는 프로덕션 환경변수 파일
+    depends_on:
+      - redis
+      - kafka
+    healthcheck:
+      test: [ "CMD", "curl", "-fsS", "http://localhost:8080/actuator/health" ]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - app
+      - monitoring
+
   redis:
     image: redis:7-alpine
-    container_name: predictick_redis_dev
+    container_name: predictick_redis
     restart: always
     ports:
       - "6379:6379"
     volumes:
-      - redisdata:/data
+      - redis_data:/data
     networks:
       - app
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   kafka:
     image: confluentinc/cp-kafka:7.8.0
     container_name: kafka
     restart: always
     ports:
-      - "9092:9092"   # host -> broker(PLAINTEXT)
+      - "9092:9092"   # EXTERNAL
       - "9093:9093"   # controller
     environment:
       KAFKA_KRAFT_MODE: "true"
       KAFKA_PROCESS_ROLES: "broker,controller"
       KAFKA_NODE_ID: 1
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
-      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
+
+      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:29092,EXTERNAL://localhost:9092"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      # 백엔드가 "호스트"에서 접속하면 localhost 광고가 맞습니다.
-      # (만약 백엔드도 도커로 올릴 계획이면 아래 참고의 "이중 리스너"로 바꾸세요)
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
+
       KAFKA_LOG_DIRS: /var/lib/kafka/data
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      # ⚠️ KRaft는 유효한 클러스터 ID가 필요합니다(예시는 22자).
       CLUSTER_ID: "8Uc-NUrZQaCDQPypfxvhzg"
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
     volumes:
       - kafka_data:/var/lib/kafka/data
     networks:
       - app
+    healthcheck:
+      test: [ "CMD", "bash", "-c", "echo > /dev/tcp/localhost/9092" ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   prometheus:
     image: prom/prometheus
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../prometheus.yml:/etc/prometheus/prometheus.yml:ro
     command: ["--config.file=/etc/prometheus/prometheus.yml"]
     ports:
       - "9090:9090"
@@ -60,14 +90,13 @@ services:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:
-      - grafana-data:/var/lib/grafana
+      - grafana_data:/var/lib/grafana
     networks:
       - monitoring
 
 volumes:
-  pgdata_dev:
-  redisdata:
-  grafana-data:
+  redis_data:
+  grafana_data:
   kafka_data:
 
 networks:
