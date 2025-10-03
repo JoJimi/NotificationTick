@@ -9,4 +9,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf 
 
 EXPOSE 8080
 
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+ENTRYPOINT ["java","-jar","/app.jar"]

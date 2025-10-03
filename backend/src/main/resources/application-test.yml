@@ -1,0 +1,59 @@
+spring:
+  # 테스트는 내장 H2 메모리 DB 사용
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+        default_batch_fetch_size: 1000
+    show-sql: false
+
+  # 테스트에서 Redis/Kafka 오토컨피그 비활성화(외부의존 제거)
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+
+  # 필요 시 웹 기본 설정(선택)
+  data:
+    web:
+      pageable:
+        default-page-size: 20
+        max-page-size: 100
+        one-indexed-parameters: false
+
+# 서버 포트는 랜덤 바인딩(충돌 방지)
+server:
+  port: 0
+
+# 테스트용 더미 값들(ENV 없이도 통과되게)
+jwt:
+  secret: dummy-secret
+  expiration:
+    accessToken: 3600
+    refreshToken: 604800
+
+app:
+  frontBaseUrl: http://localhost:5173
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+# 로깅(테스트 콘솔 깔끔)
+logging:
+  level:
+    root: WARN

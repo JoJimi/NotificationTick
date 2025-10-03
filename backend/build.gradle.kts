@@ -34,6 +34,8 @@ dependencies {
 	implementation("net.bytebuddy:byte-buddy")
 	implementation("net.bytebuddy:byte-buddy-agent")
 
+	implementation ("com.h2database:h2")
+
 	// kafka
 	implementation("org.springframework.kafka:spring-kafka")
 

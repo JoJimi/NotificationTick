@@ -1,0 +1,128 @@
+name: Backend CI/CD PipeLine
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-*.yml'
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./backend
+
+concurrency:
+  group: backend-cicd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: make application.yml
+        run: |
+          cd ./src/main/resources
+          cat > ./application-prod.yml << 'EOF'
+          ${{ secrets.APPLICATION_PROD }}
+          EOF
+
+      - name: Validate Gradle Wrapper (optional)
+        uses: gradle/wrapper-validation-action@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Test (test profile)
+        env:
+          SPRING_PROFILES_ACTIVE: test
+        run: ./gradlew --no-daemon clean test --stacktrace
+
+      - name: Package (bootJar)
+        run: ./gradlew --no-daemon -x test bootJar --stacktrace
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: backend/docker/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    # 백엔드 코드 AWS EC2에 배포하는 로직 추가 예정!
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}           # AWS EC2의 퍼블릭 Ipv4 DNS
+          username: ubuntu
+          key: ${{ secrets.EC2_PRIVATE_KEY }}     # AWS EC2의 pem 전체 복사 후 붙여넣기
+          script: |
+            set -euo pipefail
+            
+            APP_HOME=~/notificationTick
+            BACKEND_DIR="$APP_HOME/backend"
+            DOCKER_DIR="$BACKEND_DIR/docker"
+            
+            mkdir -p "$DOCKER_DIR"
+            
+            echo '${{ secrets.DOCKERHUB_PASSWORD }}' | sudo docker login -u '${{ secrets.DOCKERHUB_USERNAME }}' --password-stdin
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:latest
+            
+            cat > "$DOCKER_DIR/docker-compose-prod.yml" << 'EOF'
+            ${{ secrets.COMPOSE_PROD }}
+            EOF
+            
+            cat > "$BACKEND_DIR/.env" << 'EOF'
+            ${{ secrets.ENV }}
+            EOF
+            chmod 600 "$BACKEND_DIR/.env"
+            
+            cat > "$DOCKER_DIR/.env" << 'EOF'
+            DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            DOCKERHUB_REPO=${{ secrets.DOCKERHUB_REPO }}
+            EOF
+            
+            cd "$DOCKER_DIR"
+            sudo docker compose down || true
+            sudo docker compose up -d --remove-orphans
+
+      - name: Notify Slack
+        if: ${{ success() }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_COLOR: '#00FF00'
+          SLACK_TITLE: 'Build and Deploy Success'
+          SLACK_TEXT: |
+            ✅ 백엔드 이미지 푸시 성공
+            - ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:${{ github.sha }}

@@ -16,7 +16,7 @@ defaults:
     working-directory: ./backend
 
 concurrency:
-  group: backend-ci-${{ github.event.pull_request.number || github.ref }}
+  group: backend-ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
