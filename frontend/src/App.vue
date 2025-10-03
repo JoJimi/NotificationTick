@@ -1,42 +1,29 @@
+<!-- src/App.vue -->
 <template>
-  <div style="text-align: center; margin-top: 4rem;">
-    <h1>Vue + Vite 연동 테스트</h1>
-    <button @click="callBackend">백엔드에게 인사 보내기</button>
-    <p v-if="message" style="margin-top: 1rem; font-weight: bold;">
-      {{ message }}
-    </p>
-  </div>
+  <header class="header">
+    <h1 class="logo" @click="$router.push('/')">PredicTick</h1>
+    <nav class="nav">
+      <NavButton to="/login" size="small">로그인</NavButton>
+      <NavButton to="/profile" size="small" type="primary">내 프로필</NavButton>
+      <NavButton to="/stocks" size="small">종목</NavButton>
+      <NavButton to="/stocks/ranking" size="small">랭킹</NavButton>
+      <NavButton to="/notifications" size="small">알림</NavButton>
+      <NotificationBell />
+    </nav>
+  </header>
+  <main class="main">
+    <RouterView />
+  </main>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-
-const message = ref('');
-
-async function callBackend() {
-  try {
-    // proxy가 설정되어 있으므로, 도메인이나 포트를 적지 않고도 호출 가능
-    const res = await fetch('/api/hello');
-    if (!res.ok) throw new Error(`서버 응답 에러: ${res.status}`);
-    const text = await res.text();
-    message.value = text; // "Hello from Spring Backend!" 기대
-  } catch (err) {
-    console.error(err);
-    message.value = 'Error: ' + err.message;
-  }
-}
+import NotificationBell from '@/components/NotificationBell.vue';
+import NavButton from '@/components/NavButton.vue';
 </script>
 
-<style>
-button {
-  padding: 0.5rem 1rem;
-  border: none;
-  background-color: #4f46e5;
-  color: white;
-  border-radius: 0.375rem;
-  cursor: pointer;
-}
-button:hover {
-  background-color: #4338ca;
-}
+<style scoped>
+.header{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid #ececec;background:#fff;position:sticky;top:0;z-index:10}
+.logo{font-weight:800;cursor:pointer}
+.nav{display:flex;gap:8px;align-items:center}
+.main{max-width:960px;margin:20px auto;padding:0 12px}
 </style>
