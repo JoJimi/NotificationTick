@@ -33,9 +33,6 @@ jobs:
           ${{ secrets.APPLICATION_PROD }}
           EOF
 
-      - name: Validate Gradle Wrapper (optional)
-        uses: gradle/wrapper-validation-action@v2
-
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
