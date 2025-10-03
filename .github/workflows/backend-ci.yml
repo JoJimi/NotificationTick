@@ -38,3 +38,5 @@ jobs:
 
       - name: Build (includes tests)
         run: ./gradlew --no-daemon clean build --stacktrace
+        env:
+          SPRING_PROFILES_ACTIVE: test
