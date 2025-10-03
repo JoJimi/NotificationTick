@@ -7,7 +7,7 @@ spring:
     password:
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
@@ -36,7 +36,7 @@ server:
 
 # 테스트용 더미 값들(ENV 없이도 통과되게)
 jwt:
-  secret: dummy-secret
+  secret: dummy
   expiration:
     accessToken: 3600
     refreshToken: 604800
