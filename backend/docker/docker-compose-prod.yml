@@ -59,39 +59,49 @@ services:
     container_name: kafka
     restart: always
     ports:
-      - "9092:9092"   # EXTERNAL
-      - "9093:9093"   # controller
+      - "9092:9092"   # EXTERNAL (외부에서 붙을 필요 없으면 이 줄/EXTERNAL 리스너를 아예 제거해도 됩니다)
+      - "9093:9093"   # controller (KRaft)
     environment:
+      # --- KRaft 단일 노드 ---
       KAFKA_KRAFT_MODE: "true"
       KAFKA_PROCESS_ROLES: "broker,controller"
       KAFKA_NODE_ID: 1
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
 
+      # --- 리스너: 내부=29092, 외부=9092 ---
       KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:29092,EXTERNAL://${PUBLIC_HOST}:9092"
+      # PUBLIC_HOST가 비어있어도 안전하게 기본값을 kafka로(외부 필요 없으면 EXTERNAL 자체 제거 권장)
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:29092,EXTERNAL://${PUBLIC_HOST:-kafka}:9092"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
 
+      # --- 단일 브로커 안전값 ---
       KAFKA_LOG_DIRS: /var/lib/kafka/data
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_CLUSTER_ID: "8Uc-NUrZQaCDQPypfxvhzg"
 
-      KAFKA_HEAP_OPTS: "-Xms256m -Xmx512m"
+      # --- KRaft 클러스터 ID(직전 로그에 쓰던 값 그대로 유지) ---
+      CLUSTER_ID: "8Uc-NUrZQaCDQPypfxvhzg"
+
+      # --- 메모리 튜닝(OOM 회피) ---
+      KAFKA_HEAP_OPTS: "-Xms256m -Xmx384m"
+
     volumes:
       - kafka_data:/var/lib/kafka/data
     networks:
       - app
+
+    # ✅ 헬스체크: 내부 브로커 주소로 수정(이전의 localhost:9092는 실패 원인)
     healthcheck:
-      test: [ "CMD", "bash", "-c", "echo > /dev/tcp/localhost/9092" ]
-      interval: 15s
+      test: [ "CMD", "bash", "-lc", "kafka-broker-api-versions --bootstrap-server kafka:29092 | grep 'id'" ]
+      interval: 20s
       timeout: 5s
-      retries: 10
-      start_period: 20s
+      retries: 20
+      start_period: 60s
 
   prometheus:
     image: prom/prometheus
