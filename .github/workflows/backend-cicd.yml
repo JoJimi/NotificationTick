@@ -95,7 +95,7 @@ jobs:
             echo '${{ secrets.DOCKERHUB_PASSWORD }}' | sudo docker login -u '${{ secrets.DOCKERHUB_USERNAME }}' --password-stdin
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:latest
             
-            cat > "$DOCKER_DIR/docker-compose-prod.yml" << 'EOF'
+            cat > "$DOCKER_DIR/docker-compose.yml" << 'EOF'
             ${{ secrets.COMPOSE_PROD }}
             EOF
             
