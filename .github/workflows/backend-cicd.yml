@@ -84,32 +84,9 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_PRIVATE_KEY }}     # AWS EC2의 pem 전체 복사 후 붙여넣기
           script: |
-            set -euo pipefail
-            
-            APP_HOME=~/notificationTick
-            BACKEND_DIR="$APP_HOME/backend"
-            DOCKER_DIR="$BACKEND_DIR/docker"
-            
-            mkdir -p "$DOCKER_DIR"
-            
+            cd /home/ubuntu/notificationTick
             echo '${{ secrets.DOCKERHUB_PASSWORD }}' | sudo docker login -u '${{ secrets.DOCKERHUB_USERNAME }}' --password-stdin
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:latest
-            
-            cat > "$DOCKER_DIR/docker-compose.yml" << 'EOF'
-            ${{ secrets.COMPOSE_PROD }}
-            EOF
-            
-            cat > "$BACKEND_DIR/.env" << 'EOF'
-            ${{ secrets.ENV }}
-            EOF
-            chmod 600 "$BACKEND_DIR/.env"
-            
-            cat > "$DOCKER_DIR/.env" << 'EOF'
-            DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
-            DOCKERHUB_REPO=${{ secrets.DOCKERHUB_REPO }}
-            EOF
-            
-            cd "$DOCKER_DIR"
             sudo docker compose down || true
             sudo docker compose up -d --remove-orphans
 

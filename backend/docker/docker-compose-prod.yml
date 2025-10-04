@@ -5,7 +5,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - ../.env           # 서버에 있는 프로덕션 환경변수 파일
+      - ./.env           # 서버에 있는 프로덕션 환경변수 파일
     environment:
       SPRING_PROFILES_ACTIVE: prod
     depends_on:
