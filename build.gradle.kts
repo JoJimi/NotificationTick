@@ -45,14 +45,14 @@ subprojects {
 
     dependencies {
         // Lombok (전 모듈 공통)
-        "compileOnly"("org.projectlombok:lombok")
-        "annotationProcessor"("org.projectlombok:lombok")
-        "testCompileOnly"("org.projectlombok:lombok")
-        "testAnnotationProcessor"("org.projectlombok:lombok")
+        compileOnly("org.projectlombok:lombok")
+        annotationProcessor("org.projectlombok:lombok")
+        testCompileOnly("org.projectlombok:lombok")
+        testAnnotationProcessor("org.projectlombok:lombok")
 
         // 공통 테스트 의존성
-        "testImplementation"("org.springframework.boot:spring-boot-starter-test")
-        "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
+        testImplementation("org.springframework.boot:spring-boot-starter-test")
+        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 
     tasks.withType<Test> {
