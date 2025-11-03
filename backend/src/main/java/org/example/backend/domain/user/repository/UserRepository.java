@@ -1,7 +1,7 @@
 package org.example.backend.domain.user.repository;
 
 import org.example.backend.domain.user.entity.User;
-import org.example.backend.type.LoginType;
+import org.example.shared.common.type.LoginType;
 
 import java.util.Optional;
 

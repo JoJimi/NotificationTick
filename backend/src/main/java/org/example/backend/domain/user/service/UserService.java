@@ -3,7 +3,7 @@ package org.example.backend.domain.user.service;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.domain.user.entity.User;
 import org.example.backend.domain.user.repository.UserRepository;
-import org.example.backend.global.exception.user.UserNotFoundException;
+import org.example.shared.common.exception.user.UserNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.backend.domain.user.entity.User;
 import org.example.backend.domain.user.repository.SpringDataUserRepository;
 import org.example.backend.domain.user.repository.UserRepository;
-import org.example.backend.type.LoginType;
+import org.example.shared.common.type.LoginType;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;

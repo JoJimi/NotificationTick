@@ -3,7 +3,7 @@ package org.example.backend.domain.news.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.backend.domain.stock.entity.Stock;
-import org.example.backend.global.entity.BaseEntity;
+import org.example.shared.common.entity.BaseEntity;
 
 import java.time.OffsetDateTime;
 

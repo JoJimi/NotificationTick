@@ -2,7 +2,7 @@ package org.example.backend.global.jwt.oauth2;
 
 import lombok.RequiredArgsConstructor;
 import org.example.backend.domain.user.entity.User;
-import org.example.backend.type.LoginType;
+import org.example.shared.common.type.LoginType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;

@@ -1,7 +1,7 @@
 package org.example.backend.domain.transaction.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.example.backend.type.TradeType;
+import org.example.shared.common.type.TradeType;
 
 import java.math.BigDecimal;
 

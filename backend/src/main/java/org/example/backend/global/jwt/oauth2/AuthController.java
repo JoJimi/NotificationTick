@@ -2,7 +2,7 @@ package org.example.backend.global.jwt.oauth2;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.backend.global.exception.auth.InvalidRefreshTokenException;
+import org.example.shared.common.exception.auth.InvalidRefreshTokenException;
 import org.example.backend.global.jwt.JwtTokenProvider;
 import org.example.backend.global.jwt.custom.CustomUserDetails;
 import org.example.backend.global.jwt.dto.request.TokenRequest;

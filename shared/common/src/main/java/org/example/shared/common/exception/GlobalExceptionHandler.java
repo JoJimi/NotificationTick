@@ -1,4 +1,4 @@
-package org.example.backend.global.exception;
+package org.example.shared.common.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

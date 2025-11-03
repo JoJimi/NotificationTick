@@ -1,8 +1,8 @@
 package org.example.backend.domain.notification.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.example.backend.type.AudienceType;
-import org.example.backend.type.NotificationType;
+import org.example.shared.common.type.AudienceType;
+import org.example.shared.common.type.NotificationType;
 
 @Schema(description = "Kafka 알림 이벤트 DTO")
 public record NotificationEvent(

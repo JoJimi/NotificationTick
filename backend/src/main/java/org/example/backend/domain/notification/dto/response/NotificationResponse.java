@@ -2,7 +2,7 @@ package org.example.backend.domain.notification.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.example.backend.domain.notification.entity.Notification;
-import org.example.backend.type.NotificationType;
+import org.example.shared.common.type.NotificationType;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;

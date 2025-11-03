@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.example.backend.domain.portfolio.entity.Portfolio;
 import org.example.backend.domain.stock.entity.Stock;
-import org.example.backend.global.entity.BaseEntity;
-import org.example.backend.type.TradeType;
+import org.example.shared.common.entity.BaseEntity;
+import org.example.shared.common.type.TradeType;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;

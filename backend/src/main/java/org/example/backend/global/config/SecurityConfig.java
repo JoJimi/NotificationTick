@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.backend.global.jwt.JwtAuthenticationFilter;
 import org.example.backend.global.jwt.handler.*;
 import org.example.backend.global.jwt.oauth2.*;
-import org.example.backend.type.RoleType;
+import org.example.shared.common.type.RoleType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;

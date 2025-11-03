@@ -3,8 +3,8 @@ package org.example.backend.global.jwt.oauth2;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.domain.user.entity.User;
 import org.example.backend.domain.user.repository.UserRepository;
-import org.example.backend.type.LoginType;
-import org.example.backend.type.RoleType;
+import org.example.shared.common.type.LoginType;
+import org.example.shared.common.type.RoleType;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;

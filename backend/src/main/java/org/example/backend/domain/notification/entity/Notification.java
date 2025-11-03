@@ -6,8 +6,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.example.backend.domain.stock.entity.Stock;
 import org.example.backend.domain.user.entity.User;
-import org.example.backend.global.entity.BaseEntity;
-import org.example.backend.type.NotificationType;
+import org.example.shared.common.entity.BaseEntity;
+import org.example.shared.common.type.NotificationType;
 
 @Entity
 @Table(name = "notification")

@@ -1,4 +1,4 @@
-package org.example.backend.type;
+package org.example.shared.common.type;
 
 import java.util.Arrays;
 import java.util.Optional;

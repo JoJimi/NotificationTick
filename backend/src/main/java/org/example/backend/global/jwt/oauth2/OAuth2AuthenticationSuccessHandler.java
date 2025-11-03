@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.backend.global.jwt.JwtTokenProvider;
 import org.example.backend.global.jwt.redis.TokenService;
-import org.example.backend.type.LoginType;
+import org.example.shared.common.type.LoginType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;

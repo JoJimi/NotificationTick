@@ -1,7 +1,7 @@
-package org.example.backend.global.exception.auth;
+package org.example.shared.common.exception.auth;
 
-import org.example.backend.global.exception.BusinessException;
-import org.example.backend.global.exception.ErrorCode;
+import org.example.shared.common.exception.BusinessException;
+import org.example.shared.common.exception.ErrorCode;
 
 /**
  * 리프레시 토큰 검증 실패 시 던질 커스텀 예외

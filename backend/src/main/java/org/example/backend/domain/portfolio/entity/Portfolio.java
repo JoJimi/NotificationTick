@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.example.backend.domain.transaction.entity.Transaction;
 import org.example.backend.domain.user.entity.User;
-import org.example.backend.global.entity.BaseEntity;
+import org.example.shared.common.entity.BaseEntity;
 
 import java.util.*;
 

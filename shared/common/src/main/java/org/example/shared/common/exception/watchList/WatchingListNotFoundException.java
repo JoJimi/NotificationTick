@@ -1,7 +1,7 @@
-package org.example.backend.global.exception.watchList;
+package org.example.shared.common.exception.watchList;
 
-import org.example.backend.global.exception.BusinessException;
-import org.example.backend.global.exception.ErrorCode;
+import org.example.shared.common.exception.BusinessException;
+import org.example.shared.common.exception.ErrorCode;
 
 public class WatchingListNotFoundException extends BusinessException {
     public WatchingListNotFoundException() {

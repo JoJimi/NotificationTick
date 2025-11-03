@@ -1,8 +1,8 @@
 package org.example.backend.domain.user.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.example.backend.type.LoginType;
-import org.example.backend.type.RoleType;
+import org.example.shared.common.type.LoginType;
+import org.example.shared.common.type.RoleType;
 
 @Schema(description = "현재 로그인된 사용자 프로필 응답 DTO")
 public record UserResponse(

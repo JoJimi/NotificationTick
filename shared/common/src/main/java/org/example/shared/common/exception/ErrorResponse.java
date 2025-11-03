@@ -1,4 +1,4 @@
-package org.example.backend.global.exception;
+package org.example.shared.common.exception;
 
 import lombok.Builder;
 

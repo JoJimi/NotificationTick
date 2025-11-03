@@ -10,10 +10,10 @@ import org.example.backend.domain.transaction.dto.request.TransactionsUpdateRequ
 import org.example.backend.domain.transaction.dto.response.TransactionsResponse;
 import org.example.backend.domain.transaction.entity.Transaction;
 import org.example.backend.domain.transaction.repository.TransactionRepository;
-import org.example.backend.global.exception.portfolio.PortfolioNotFoundException;
+import org.example.shared.common.exception.portfolio.PortfolioNotFoundException;
 import org.example.backend.domain.user.entity.User;
-import org.example.backend.global.exception.stock.StockBySymbolNotFoundException;
-import org.example.backend.global.exception.transaction.TransactionNotFoundException;
+import org.example.shared.common.exception.stock.StockBySymbolNotFoundException;
+import org.example.shared.common.exception.transaction.TransactionNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

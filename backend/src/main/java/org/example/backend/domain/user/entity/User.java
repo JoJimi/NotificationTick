@@ -5,9 +5,9 @@ import lombok.*;
 import org.example.backend.domain.notification.entity.Notification;
 import org.example.backend.domain.portfolio.entity.Portfolio;
 import org.example.backend.domain.watch_list.entity.WatchList;
-import org.example.backend.global.entity.BaseEntity;
-import org.example.backend.type.LoginType;
-import org.example.backend.type.RoleType;
+import org.example.shared.common.entity.BaseEntity;
+import org.example.shared.common.type.LoginType;
+import org.example.shared.common.type.RoleType;
 
 import java.util.*;
 

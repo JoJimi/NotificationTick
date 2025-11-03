@@ -6,7 +6,7 @@ import org.example.backend.domain.news.entity.News;
 import org.example.backend.domain.notification.entity.Notification;
 import org.example.backend.domain.transaction.entity.Transaction;
 import org.example.backend.domain.watch_list.entity.WatchList;
-import org.example.backend.global.entity.BaseEntity;
+import org.example.shared.common.entity.BaseEntity;
 
 import java.util.*;
 

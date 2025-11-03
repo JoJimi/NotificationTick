@@ -9,7 +9,7 @@ import org.example.backend.domain.user.entity.User;
 import org.example.backend.domain.watch_list.dto.response.WatchListResponse;
 import org.example.backend.domain.watch_list.entity.WatchList;
 import org.example.backend.domain.watch_list.repository.WatchListRepository;
-import org.example.backend.global.exception.stock.StockBySymbolNotFoundException;
+import org.example.shared.common.exception.stock.StockBySymbolNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

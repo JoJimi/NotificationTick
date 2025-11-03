@@ -1,4 +1,4 @@
 rootProject.name = "PredicTick"
 
-include("backend")
-
+include(":backend")
+include(":shared:common")

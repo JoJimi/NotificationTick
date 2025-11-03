@@ -1,4 +1,4 @@
-package org.example.backend.type;
+package org.example.shared.common.type;
 
 import lombok.Getter;
 import java.util.*;
